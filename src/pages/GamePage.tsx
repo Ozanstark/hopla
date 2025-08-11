@@ -4,7 +4,7 @@ import Preloader from "@/infiniteRunner/scenes/Preloader";
 import GameScene from "@/infiniteRunner/scenes/Game";
 import GameOver from "@/infiniteRunner/scenes/GameOver";
 import { Button } from "@/components/ui/button";
-import { Share2, HelpCircle, Pause, Play } from "lucide-react";
+import { Share2, HelpCircle, Pause, Play, Trophy } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,8 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 const GamePage = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -185,21 +187,41 @@ const { toast } = useToast();
               Powered by{' '}<a href="https://x.com/ozanstark" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">@ozanstark</a>
             </p>
           </div>
-          <Card className="p-4">
-            <h2 className="text-lg font-semibold mb-3">Skorboard</h2>
-            <ol className="space-y-2">
-              {leaderboard.length === 0 ? (
-                <li className="text-muted-foreground text-sm">Henüz skor yok.</li>
-              ) : (
-                leaderboard.map((e, i) => (
-                  <li key={e.date} className="flex items-center justify-between">
-                    <span className="text-muted-foreground w-6">{i + 1}.</span>
-                    <span className="flex-1 mx-2 truncate">{e.name}</span>
-                    <span className="font-medium">{e.score}</span>
-                  </li>
-                ))
+          <Card className="p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-primary" /> Skorboard
+              </h2>
+              {lastScore > 0 && (
+                <Badge variant="secondary" aria-label="Son skor">Son skor: {lastScore}</Badge>
               )}
-            </ol>
+            </div>
+            <ScrollArea className="h-80 pr-2">
+              <ol className="space-y-2">
+                {leaderboard.length === 0 ? (
+                  <li className="text-muted-foreground text-sm">Henüz skor yok.</li>
+                ) : (
+                  leaderboard.map((e, i) => {
+                    const rankClasses = i === 0
+                      ? 'bg-primary/20 text-primary ring-1 ring-primary/40'
+                      : i === 1
+                      ? 'bg-secondary text-secondary-foreground'
+                      : i === 2
+                      ? 'bg-accent text-accent-foreground'
+                      : 'bg-muted text-muted-foreground';
+                    return (
+                      <li key={e.date} className="group flex items-center justify-between rounded-md border px-3 py-2 bg-card/50 hover:bg-accent/30 transition-colors">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className={`w-8 h-8 grid place-content-center rounded-full text-sm font-bold ${rankClasses}`}>{i + 1}</span>
+                          <span className="truncate font-medium">{e.name}</span>
+                        </div>
+                        <span className="font-semibold tabular-nums">{e.score}</span>
+                      </li>
+                    );
+                  })
+                )}
+              </ol>
+            </ScrollArea>
           </Card>
         </div>
       </div>
