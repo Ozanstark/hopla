@@ -206,6 +206,30 @@ export type Database = {
         }
         Relationships: []
       }
+      game_scores: {
+        Row: {
+          created_at: string
+          id: string
+          player_name: string
+          score: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_name: string
+          score: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_name?: string
+          score?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mod_suggestions: {
         Row: {
           created_at: string | null

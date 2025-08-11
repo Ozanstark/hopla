@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 const GamePage = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -52,13 +54,32 @@ const GamePage = () => {
   type ScoreEntry = { name: string; score: number; date: number };
   const [leaderboard, setLeaderboard] = useState<ScoreEntry[]>([]);
 
+const { toast } = useToast();
+
+  const fetchTopScores = async () => {
+    const { data, error } = await supabase
+      .from('game_scores')
+      .select('player_name, score, created_at')
+      .order('score', { ascending: false })
+      .limit(20);
+    if (error) {
+      console.error(error);
+      toast({ title: 'Skorlar yüklenemedi', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setLeaderboard(
+      (data ?? []).map((d: any) => ({
+        name: d.player_name,
+        score: d.score,
+        date: new Date(d.created_at).getTime(),
+      }))
+    );
+  };
+
   useEffect(() => {
-    const savedName = localStorage.getItem("ir-player-name") || "";
+    const savedName = localStorage.getItem('ir-player-name') || '';
     setPlayerName(savedName);
-    try {
-      const raw = localStorage.getItem("ir-leaderboard");
-      if (raw) setLeaderboard(JSON.parse(raw));
-    } catch {}
+    fetchTopScores();
   }, []);
 
   useEffect(() => {
@@ -73,14 +94,19 @@ const GamePage = () => {
     return () => window.removeEventListener('infinite-runner:game-over', onGameOver as EventListener);
   }, []);
 
-  const submitScore = () => {
+  const submitScore = async () => {
     const name = playerName.trim() || 'Misafir';
     localStorage.setItem('ir-player-name', name);
-    const entry = { name, score: lastScore, date: Date.now() };
-    const next = [...leaderboard, entry].sort((a,b)=> b.score - a.score).slice(0, 20);
-    setLeaderboard(next);
-    localStorage.setItem('ir-leaderboard', JSON.stringify(next));
-    setIsDialogOpen(false);
+    try {
+      const { error } = await supabase.from('game_scores').insert({ player_name: name, score: lastScore });
+      if (error) throw error;
+      toast({ title: 'Skor kaydedildi!', description: 'Tebrikler 🎉' });
+      setIsDialogOpen(false);
+      await fetchTopScores();
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: 'Skor kaydedilemedi', description: err.message ?? 'Bilinmeyen hata', variant: 'destructive' });
+    }
   };
   const rockets = "🚀🚀🚀";
   const text = encodeURIComponent(`Hörikeynle 100 Milyona oyununda ${lastScore} skor aldım. ${rockets}\nLink:`);
