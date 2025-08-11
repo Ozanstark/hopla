@@ -63,10 +63,10 @@ const GamePage = () => {
           </a>
         </Button>
       </div>
-      <p className="text-sm text-muted-foreground mb-6">
+      <div ref={parentRef} className="rounded-lg overflow-hidden border" aria-label="Game canvas" />
+      <p className="text-sm text-muted-foreground mt-3">
         Powered by{' '}<a href="https://x.com/ozanstark" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">@ozanstark</a>
       </p>
-      <div ref={parentRef} className="rounded-lg overflow-hidden border" aria-label="Game canvas" />
     </main>;
 };
 export default GamePage;
