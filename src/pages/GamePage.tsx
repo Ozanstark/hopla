@@ -4,13 +4,14 @@ import Preloader from "@/infiniteRunner/scenes/Preloader";
 import GameScene from "@/infiniteRunner/scenes/Game";
 import GameOver from "@/infiniteRunner/scenes/GameOver";
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { Share2, HelpCircle, Pause, Play } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Switch } from "@/components/ui/switch";
 const GamePage = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -51,9 +52,11 @@ const GamePage = () => {
   const [lastScore, setLastScore] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [playerName, setPlayerName] = useState("");
-  type ScoreEntry = { name: string; score: number; date: number };
-  const [leaderboard, setLeaderboard] = useState<ScoreEntry[]>([]);
-
+type ScoreEntry = { name: string; score: number; date: number };
+const [leaderboard, setLeaderboard] = useState<ScoreEntry[]>([]);
+const [isPaused, setIsPaused] = useState(false);
+const [isMuted, setIsMuted] = useState(false);
+const [isHowToOpen, setIsHowToOpen] = useState(false);
 const { toast } = useToast();
 
   const fetchTopScores = async () => {
@@ -94,6 +97,28 @@ const { toast } = useToast();
     return () => window.removeEventListener('infinite-runner:game-over', onGameOver as EventListener);
   }, []);
 
+  // Ses kapatma/açma oyun motoruna uygula
+  useEffect(() => {
+    const game = gameRef.current;
+    if (game && (game as any).sound) {
+      (game as any).sound.mute = isMuted;
+    }
+  }, [isMuted]);
+
+  // Skorboard için realtime aboneliği
+  useEffect(() => {
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'game_scores' }, () => {
+        fetchTopScores();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    }
+  }, []);
+
   const submitScore = async () => {
     const name = playerName.trim() || 'Misafir';
     localStorage.setItem('ir-player-name', name);
@@ -108,6 +133,19 @@ const { toast } = useToast();
       toast({ title: 'Skor kaydedilemedi', description: err.message ?? 'Bilinmeyen hata', variant: 'destructive' });
     }
   };
+  const handlePauseToggle = () => {
+    const game = gameRef.current;
+    if (!game) return;
+    const active = game.scene.isActive('game');
+    if (active) {
+      game.scene.pause('game');
+      setIsPaused(true);
+    } else {
+      game.scene.resume('game');
+      setIsPaused(false);
+    }
+  };
+
   const rockets = "🚀🚀🚀";
   const text = encodeURIComponent(`Hörikeynle 100 Milyona oyununda ${lastScore} skor aldım. ${rockets}\nLink:`);
   const url = encodeURIComponent(window.location.href);
@@ -117,11 +155,21 @@ const { toast } = useToast();
         <h1 className="font-pixel text-2xl md:text-4xl lg:text-5xl mb-4 text-center text-rainbow animate-rainbow">Hörikeyn'le 100 Milyona hopla</h1>
         <div className="grid gap-6 md:grid-cols-[1fr,320px] items-start">
           <div className="flex flex-col items-center">
-            <div className="mb-3">
+            <div className="mb-3 flex flex-wrap items-center gap-2 justify-center">
               <Button variant="secondary" asChild>
                 <a href={shareHref} target="_blank" rel="noopener noreferrer" aria-label="X'te paylaş">
                   <Share2 /> X'te Paylaş
                 </a>
+              </Button>
+              <Button variant="outline" onClick={handlePauseToggle} aria-label={isPaused ? 'Devam et' : 'Duraklat'}>
+                {isPaused ? <Play className="mr-1 h-4 w-4" /> : <Pause className="mr-1 h-4 w-4" />} {isPaused ? 'Devam' : 'Duraklat'}
+              </Button>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="mute">Sessiz</Label>
+                <Switch id="mute" checked={isMuted} onCheckedChange={setIsMuted} aria-label="Sesi kapat/aç" />
+              </div>
+              <Button variant="outline" onClick={() => setIsHowToOpen(true)} aria-label="Nasıl oynanır?">
+                <HelpCircle className="mr-1 h-4 w-4" /> Nasıl oynanır?
               </Button>
             </div>
             <div ref={parentRef} className="w-full max-w-full aspect-[5/4] rounded-lg overflow-hidden border" aria-label="Game canvas" />
@@ -160,6 +208,25 @@ const { toast } = useToast();
           </div>
           <DialogFooter>
             <Button onClick={submitScore}>Kaydet</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isHowToOpen} onOpenChange={setIsHowToOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nasıl oynanır?</DialogTitle>
+            <DialogDescription>Kontroller ve ipuçları</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 text-sm">
+            <p>• Bilgisayar: Boşluk tuşuna basılı tutarak uç.</p>
+            <p>• Mobil: Ekrana basılı tutarak uç.</p>
+            <p>• Amaç: Coin topla, lazerlerden kaç.</p>
+            <p>• Yeniden başlat: Oyun bitti ekranında ekrana dokun veya SPACE.</p>
+            <p>• Duraklat: Üstteki Duraklat düğmesini kullan.</p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsHowToOpen(false)}>Tamam</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
