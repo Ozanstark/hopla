@@ -81,6 +81,8 @@ export default class Game extends Phaser.Scene{
         this.add.existing(this.laserObstacle)
         this.mouse = new RocketMouse(this, width * 0.5, height - 30)
         this.add.existing(this.mouse);
+
+        // Touch: tap/hold to fly handled inside RocketMouse
         
         this.coins = this.physics.add.staticGroup()
         this.spawnCoins()

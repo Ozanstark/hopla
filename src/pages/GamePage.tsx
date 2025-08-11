@@ -17,9 +17,7 @@ const GamePage = () => {
     if (gameRef.current || !parentRef.current) return;
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
-      width: 800,
-      height: 640,
-      parent: parentRef.current,
+      backgroundColor: "#000000",
       physics: {
         default: "arcade",
         arcade: {
@@ -30,7 +28,13 @@ const GamePage = () => {
         }
       },
       scene: [Preloader, GameScene, GameOver],
-      backgroundColor: "#000000"
+      scale: {
+        parent: parentRef.current!,
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 800,
+        height: 640
+      }
     };
     gameRef.current = new Phaser.Game(config);
     return () => {
@@ -63,7 +67,7 @@ const GamePage = () => {
           </a>
         </Button>
       </div>
-      <div ref={parentRef} className="rounded-lg overflow-hidden border" aria-label="Game canvas" />
+      <div ref={parentRef} className="w-full max-w-screen-md aspect-[5/4] rounded-lg overflow-hidden border" aria-label="Game canvas" />
       <p className="text-sm text-muted-foreground mt-3">
         Powered by{' '}<a href="https://x.com/ozanstark" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">@ozanstark</a>
       </p>

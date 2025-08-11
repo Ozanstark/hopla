@@ -10,6 +10,7 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys
     private mouse: Phaser.GameObjects.Sprite
     private mouseState = MouseState.Running
+    private isPointerDown = false
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y);
@@ -31,6 +32,11 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
         body.setOffset(this.mouse.width * -0.3, -this.mouse.height + 15)
 
         this.cursors = scene.input.keyboard.createCursorKeys();
+
+        // Touch controls: hold to fly
+        scene.input.on('pointerdown', this.handlePointerDown, this)
+        scene.input.on('pointerup', this.handlePointerUp, this)
+        scene.input.on('gameout', this.handlePointerUp, this)
     }
     preUpdate() {
         const body = this.body as Phaser.Physics.Arcade.Body
@@ -39,7 +45,7 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
             // move all previous code into this case
             case MouseState.Running:
                 {
-                    if (this.cursors.space?.isDown) {
+                    if (this.cursors.space?.isDown || this.isPointerDown) {
                         body.setAccelerationY(-600)
                         this.enableJetpack(true)
 
@@ -78,6 +84,14 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
     enableJetpack(enabled: boolean) {
         this.flames.setVisible(enabled);
     }
+
+    private handlePointerDown() {
+        this.isPointerDown = true
+    }
+    private handlePointerUp() {
+        this.isPointerDown = false
+    }
+
     kill(): void {
         if (this.mouseState !== MouseState.Running) {
             return
