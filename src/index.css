@@ -53,6 +53,19 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Gradients */
+    --gradient-rainbow: linear-gradient(
+      90deg,
+      hsl(0 100% 50%),      /* red */
+      hsl(30 100% 50%),     /* orange */
+      hsl(60 100% 50%),     /* yellow */
+      hsl(120 70% 45%),     /* green */
+      hsl(180 80% 45%),     /* cyan */
+      hsl(240 100% 60%),    /* blue */
+      hsl(300 100% 60%),    /* magenta */
+      hsl(360 100% 50%)     /* red again for seamless loop */
+    );
   }
 
   .dark {
@@ -91,6 +104,19 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Gradients (dark) - tuned for contrast */
+    --gradient-rainbow: linear-gradient(
+      90deg,
+      hsl(0 100% 65%),
+      hsl(30 100% 60%),
+      hsl(60 100% 60%),
+      hsl(120 70% 55%),
+      hsl(180 80% 55%),
+      hsl(240 100% 70%),
+      hsl(300 100% 70%),
+      hsl(360 100% 65%)
+    );
   }
 }
 
@@ -101,5 +127,14 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-rainbow {
+    @apply text-transparent bg-clip-text;
+    background-image: var(--gradient-rainbow);
+    background-size: 200% 200%;
+    background-position: 0% 50%;
   }
 }
