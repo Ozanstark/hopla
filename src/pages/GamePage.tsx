@@ -52,7 +52,7 @@ const GamePage = () => {
   const rockets = "🚀🚀🚀";
   const text = encodeURIComponent(`Hörikeynle 100 Milyona oyununda ${lastScore} skor aldım. ${rockets}\nLink:`);
   const url = encodeURIComponent(window.location.href);
-  const shareHref = `https://x.com/intent/tweet?text=${text}&url=${url}`;
+  const shareHref = `https://x.com/intent/tweet?text=${text}&url=${url}&via=ozanstark`;
   return <main className="min-h-screen flex flex-col items-center justify-center bg-background">
       <h1 className="text-3xl md:text-4xl font-bold mb-4">Hörikeyn'le    100   Milyona   hopla</h1>
       
