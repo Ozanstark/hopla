@@ -187,19 +187,21 @@ export default class Game extends Phaser.Scene{
         this.coins.killAndHide(coin);
         coin.body.enable = false;
 
-        // Particles and haptics for coin collect
+        // Simple burst effect (tweened sprites) + haptics
         try {
-          const manager = this.add.particles(TextureKeys.Coin);
-          const emitter = manager.createEmitter({
-            speed: { min: -150, max: 150 },
-            scale: { start: 0.6, end: 0 },
-            alpha: { start: 1, end: 0 },
-            lifespan: 600,
-            quantity: 16,
-            blendMode: 'ADD'
-          });
-          emitter.explode(16, coin.x, coin.y);
-          this.time.delayedCall(300, () => manager.destroy());
+          for (let i = 0; i < 8; i++) {
+            const s = this.add.image(coin.x, coin.y, TextureKeys.Coin).setScale(0.4).setAlpha(0.9);
+            this.tweens.add({
+              targets: s,
+              x: coin.x + Phaser.Math.Between(-80, 80),
+              y: coin.y + Phaser.Math.Between(-80, 80),
+              alpha: 0,
+              scale: 0,
+              duration: 350,
+              ease: 'Quad.easeOut',
+              onComplete: () => s.destroy()
+            });
+          }
         } catch {}
         if (typeof navigator !== "undefined" && 'vibrate' in navigator) {
           try { navigator.vibrate(10); } catch {}
