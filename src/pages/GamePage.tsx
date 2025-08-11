@@ -124,7 +124,13 @@ const { toast } = useToast();
                 </a>
               </Button>
             </div>
-            <div ref={parentRef} className="w-full max-w-full aspect-[5/4] rounded-lg overflow-hidden border" aria-label="Game canvas" />
+            <div ref={parentRef} className="relative w-full max-w-full aspect-[5/4] rounded-lg overflow-hidden border" aria-label="Game canvas">
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-3">
+                <h1 className="font-pixel text-foreground text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-wide text-center">
+                  Hörikeyn'le    100   Milyona   hopla
+                </h1>
+              </div>
+            </div>
             <p className="text-sm text-muted-foreground mt-3">
               Powered by{' '}<a href="https://x.com/ozanstark" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">@ozanstark</a>
             </p>
