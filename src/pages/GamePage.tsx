@@ -172,7 +172,7 @@ const { toast } = useToast();
                 <HelpCircle className="mr-1 h-4 w-4" /> Nasıl oynanır?
               </Button>
             </div>
-            <div ref={parentRef} className="w-full max-w-full aspect-[5/4] rounded-lg overflow-hidden border" aria-label="Game canvas" />
+            <div ref={parentRef} className="relative w-full max-w-[960px] h-[60vh] max-h-[640px] rounded-lg overflow-hidden border mx-auto" aria-label="Game canvas" />
             <p className="text-sm text-muted-foreground mt-3">
               Powered by{' '}<a href="https://x.com/ozanstark" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">@ozanstark</a>
             </p>
