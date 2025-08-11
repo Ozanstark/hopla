@@ -36,7 +36,9 @@ export default class Preloader extends Phaser.Scene{
         this.load.image(TextureKeys.LaserMiddle, laserMiddle);
 
         this.load.image(TextureKeys.Coin, coin);
-        //Load the character as an atlas
+        // Custom character image uploaded via Lovable
+        this.load.image(TextureKeys.CustomMouse, "/lovable-uploads/688acd1c-f5ff-49fa-b561-5bc890a55731.png");
+        //Load the character as an atlas (kept for fallback animations)
         this.load.atlas(TextureKeys.RocketMouse,rocketMouse, rocketMouseData);
     }
     create(){

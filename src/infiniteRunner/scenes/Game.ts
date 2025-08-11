@@ -142,9 +142,11 @@ export default class Game extends Phaser.Scene{
 
             this.windows.forEach(win=>{
                 win.x -= maxX
+                return
             })
             this.bookcases.forEach(bc=>{
                 bc.x -= maxX
+                return
             })
 
             this.laserObstacle.x -= maxX

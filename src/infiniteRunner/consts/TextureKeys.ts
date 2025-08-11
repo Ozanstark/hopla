@@ -9,7 +9,7 @@ enum TextureKeys{
     Bookcase2 = "bookcase-2",
     LaserMiddle = "laser-middle",
     LaserEnd = "laser-end",
-    Coin = "coin"
+    Coin = "coin",
+    CustomMouse = "custom-mouse"
 }
-
 export default TextureKeys
