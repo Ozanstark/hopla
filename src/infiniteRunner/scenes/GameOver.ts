@@ -10,14 +10,18 @@ export default class GameOver extends Phaser.Scene{
         const x = width * 0.5;
         const y = height * 0.5;
 
-        this.add.text(x,y, "Tekrar oynamak için ekrana dokun veya SPACE'e bas!", {
-            fontSize: "32px",
+        const fontSize = Math.max(16, Math.min(28, Math.floor(width / 18)))
+
+        this.add.text(x, y, "Tekrar oynamak için ekrana dokun veya SPACE'e bas!", {
+            fontSize: `${fontSize}px`,
             color: "#FFFFFF",
             backgroundColor: "#000000",
             shadow: {fill: true, blur: 0, offsetY: 0},
-            padding: {left: 15, right: 15, top: 10, bottom: 10}
+            padding: {left: 15, right: 15, top: 10, bottom: 10},
+            wordWrap: { width: width * 0.9, useAdvancedWrap: true },
+            align: 'center'
         }).setOrigin(0.5)
-    
+
         const restart = () => {
             this.scene.stop(SceneKeys.GameOver)
             this.scene.stop(SceneKeys.Game)
