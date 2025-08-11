@@ -182,11 +182,28 @@ export default class Game extends Phaser.Scene{
         obj1: Phaser.Types.Physics.Arcade.GameObjectWithBody,
         obj2: Phaser.Types.Physics.Arcade.GameObjectWithBody
     ){
-        console.log(obj1)
         const coin = obj2 as Phaser.Physics.Arcade.Sprite;
 
         this.coins.killAndHide(coin);
         coin.body.enable = false;
+
+        // Particles and haptics for coin collect
+        try {
+          const manager = this.add.particles(TextureKeys.Coin);
+          const emitter = manager.createEmitter({
+            speed: { min: -150, max: 150 },
+            scale: { start: 0.6, end: 0 },
+            alpha: { start: 1, end: 0 },
+            lifespan: 600,
+            quantity: 16,
+            blendMode: 'ADD'
+          });
+          emitter.explode(16, coin.x, coin.y);
+          this.time.delayedCall(300, () => manager.destroy());
+        } catch {}
+        if (typeof navigator !== "undefined" && 'vibrate' in navigator) {
+          try { navigator.vibrate(10); } catch {}
+        }
 
         this.score += 1;
         this.scoreLabel.text = `Score: ${this.score}`;
@@ -230,6 +247,11 @@ export default class Game extends Phaser.Scene{
     private handleOverlapLaser(){
         console.log("overlap!")
         this.sound.play('sfx-hit', { volume: 0.6 });
+        // Camera shake + haptics
+        try { this.cameras.main.shake(250, 0.01); } catch {}
+        if (typeof navigator !== "undefined" && 'vibrate' in navigator) {
+          try { navigator.vibrate([40, 80, 40]); } catch {}
+        }
         this.mouse.kill()
         try {
             window.dispatchEvent(new CustomEvent('infinite-runner:game-over', { detail: { score: this.score } }))

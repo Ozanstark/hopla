@@ -4,7 +4,7 @@ import Preloader from "@/infiniteRunner/scenes/Preloader";
 import GameScene from "@/infiniteRunner/scenes/Game";
 import GameOver from "@/infiniteRunner/scenes/GameOver";
 import { Button } from "@/components/ui/button";
-import { Share2, HelpCircle, Pause, Play, Trophy } from "lucide-react";
+import { Share2, HelpCircle, Pause, Play, Trophy, Smartphone } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import usePWAInstall from "@/hooks/usePWAInstall";
 const GamePage = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -61,13 +63,22 @@ const [isMuted, setIsMuted] = useState(false);
 const [isHowToOpen, setIsHowToOpen] = useState(false);
 const { toast } = useToast();
 const [twitterUsername, setTwitterUsername] = useState("");
-
+const { canInstall, promptInstall } = usePWAInstall();
+const [period, setPeriod] = useState<"all" | "today">("all");
   const fetchTopScores = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from('game_scores')
       .select('player_name, score, created_at, twitter_username')
       .order('score', { ascending: false })
       .limit(20);
+
+    if (period === "today") {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      query = query.gte('created_at', start.toISOString());
+    }
+
+    const { data, error } = await query;
     if (error) {
       console.error(error);
       toast({ title: 'Skorlar yüklenemedi', description: error.message, variant: 'destructive' });
@@ -93,11 +104,17 @@ const [twitterUsername, setTwitterUsername] = useState("");
 
   useEffect(() => {
     const onGameOver = (e: Event) => {
-      const detail = (e as CustomEvent<{
-        score: number;
-      }>).detail;
-      setLastScore(detail?.score ?? 0);
+      const detail = (e as CustomEvent<{ score: number }>).detail;
+      const score = detail?.score ?? 0;
+      setLastScore(score);
       setIsDialogOpen(true);
+
+      const best = Number(localStorage.getItem('ir-best-score') || '0');
+      if (score > best) {
+        localStorage.setItem('ir-best-score', String(score));
+        try { fireConfetti(); } catch {}
+        toast({ title: 'Yeni rekor! 🎉', description: `Skor: ${score}` });
+      }
     };
     window.addEventListener('infinite-runner:game-over', onGameOver as EventListener);
     return () => window.removeEventListener('infinite-runner:game-over', onGameOver as EventListener);
@@ -172,20 +189,56 @@ const [twitterUsername, setTwitterUsername] = useState("");
     }
   };
 
-  const rockets = "🚀🚀🚀";
-  const text = encodeURIComponent(`Hörikeynle 100 Milyona oyununda ${lastScore} skor aldım. ${rockets}\nLink:`);
-  const url = encodeURIComponent(window.location.href);
-  const shareHref = `https://x.com/intent/tweet?text=${text}&url=${url}&via=ozanstark`;
+  const getShareText = () => `Hörikeyn'le 100 Milyona oyununda ${lastScore} skor aldım. 🚀🚀🚀`;
+  const handleShare = async () => {
+    try {
+      const canvas = parentRef.current?.querySelector('canvas');
+      const shareText = `${getShareText()}\n${window.location.href}`;
+      if (!canvas) {
+        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&via=ozanstark`, '_blank');
+        return;
+      }
+      const dataUrl = canvas.toDataURL('image/png');
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], 'score.png', { type: 'image/png' });
+      const navAny = navigator as any;
+      if (navAny.canShare && navAny.canShare({ files: [file] })) {
+        await navAny.share({ files: [file], title: 'Hörikeyn Oyun Skorum', text: getShareText() });
+      } else if (navigator.share) {
+        await navigator.share({ title: 'Hörikeyn Oyun Skorum', text: shareText });
+      } else {
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = 'score.png';
+        a.click();
+        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&via=ozanstark`, '_blank');
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Paylaşım başarısız', description: 'Tarayıcın paylaşımı desteklemiyor olabilir.', variant: 'destructive' });
+    }
+  };
+
+  async function fireConfetti() {
+    try {
+      const confetti = (await import('canvas-confetti')).default;
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+    } catch {}
+  }
   return <main className="min-h-screen w-full bg-background">
       <div className="container mx-auto p-4 md:p-6">
         <h1 className="font-pixel text-2xl md:text-4xl lg:text-5xl mb-4 text-center text-rainbow animate-rainbow">Hörikeyn'le 100 Milyona hopla</h1>
         <div className="grid gap-6 md:grid-cols-[1fr,320px] items-start">
           <div className="flex flex-col items-center">
             <div className="mb-3 flex flex-wrap items-center gap-2 justify-center">
-              <Button variant="secondary" asChild>
-                <a href={shareHref} target="_blank" rel="noopener noreferrer" aria-label="X'te paylaş" onMouseDown={playClick}>
-                  <Share2 /> X'te Paylaş
-                </a>
+              {canInstall && (
+                <Button variant="secondary" onClick={() => { playClick(); promptInstall(); }} aria-label="Uygulamayı yükle">
+                  <Smartphone className="mr-1 h-4 w-4" /> Yükle
+                </Button>
+              )}
+              <Button variant="secondary" onClick={() => { playClick(); handleShare(); }} aria-label="Paylaş">
+                <Share2 className="mr-1 h-4 w-4" /> Paylaş
               </Button>
               <Button variant="outline" onClick={() => { playClick(); handlePauseToggle(); }} aria-label={isPaused ? 'Devam et' : 'Duraklat'}>
                 {isPaused ? <Play className="mr-1 h-4 w-4" /> : <Pause className="mr-1 h-4 w-4" />} {isPaused ? 'Devam' : 'Duraklat'}
@@ -208,9 +261,20 @@ const [twitterUsername, setTwitterUsername] = useState("");
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-primary" /> Skorboard
               </h2>
-              {lastScore > 0 && (
-                <Badge variant="secondary" aria-label="Son skor">Son skor: {lastScore}</Badge>
-              )}
+              <div className="flex items-center gap-2">
+                <Select value={period} onValueChange={(v) => setPeriod(v as "all" | "today")}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Filtre" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tümü</SelectItem>
+                    <SelectItem value="today">Bugün</SelectItem>
+                  </SelectContent>
+                </Select>
+                {lastScore > 0 && (
+                  <Badge variant="secondary" aria-label="Son skor">Son skor: {lastScore}</Badge>
+                )}
+              </div>
             </div>
             <ScrollArea className="h-80 pr-2">
               <ol className="space-y-2">
