@@ -97,6 +97,14 @@ const { toast } = useToast();
     return () => window.removeEventListener('infinite-runner:game-over', onGameOver as EventListener);
   }, []);
 
+  // UI click sfx helper
+  const playClick = () => {
+    try {
+      const game = gameRef.current as any;
+      game?.sound?.play?.('sfx-click', { volume: 0.4 });
+    } catch {}
+  };
+
   // Ses kapatma/açma oyun motoruna uygula
   useEffect(() => {
     const game = gameRef.current;
@@ -157,18 +165,18 @@ const { toast } = useToast();
           <div className="flex flex-col items-center">
             <div className="mb-3 flex flex-wrap items-center gap-2 justify-center">
               <Button variant="secondary" asChild>
-                <a href={shareHref} target="_blank" rel="noopener noreferrer" aria-label="X'te paylaş">
+                <a href={shareHref} target="_blank" rel="noopener noreferrer" aria-label="X'te paylaş" onMouseDown={playClick}>
                   <Share2 /> X'te Paylaş
                 </a>
               </Button>
-              <Button variant="outline" onClick={handlePauseToggle} aria-label={isPaused ? 'Devam et' : 'Duraklat'}>
+              <Button variant="outline" onClick={() => { playClick(); handlePauseToggle(); }} aria-label={isPaused ? 'Devam et' : 'Duraklat'}>
                 {isPaused ? <Play className="mr-1 h-4 w-4" /> : <Pause className="mr-1 h-4 w-4" />} {isPaused ? 'Devam' : 'Duraklat'}
               </Button>
               <div className="flex items-center gap-2">
                 <Label htmlFor="mute">Sessiz</Label>
-                <Switch id="mute" checked={isMuted} onCheckedChange={setIsMuted} aria-label="Sesi kapat/aç" />
+                <Switch id="mute" checked={isMuted} onCheckedChange={(v)=>{ playClick(); setIsMuted(v); }} aria-label="Sesi kapat/aç" />
               </div>
-              <Button variant="outline" onClick={() => setIsHowToOpen(true)} aria-label="Nasıl oynanır?">
+              <Button variant="outline" onClick={() => { playClick(); setIsHowToOpen(true); }} aria-label="Nasıl oynanır?">
                 <HelpCircle className="mr-1 h-4 w-4" /> Nasıl oynanır?
               </Button>
             </div>
@@ -207,7 +215,7 @@ const { toast } = useToast();
             <Input id="name" value={playerName} onChange={(e)=>setPlayerName(e.target.value)} placeholder="Adın" />
           </div>
           <DialogFooter>
-            <Button onClick={submitScore}>Kaydet</Button>
+            <Button onClick={() => { playClick(); submitScore(); }}>Kaydet</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -226,7 +234,7 @@ const { toast } = useToast();
             <p>• Duraklat: Üstteki Duraklat düğmesini kullan.</p>
           </div>
           <DialogFooter>
-            <Button onClick={() => setIsHowToOpen(false)}>Tamam</Button>
+            <Button onClick={() => { playClick(); setIsHowToOpen(false); }}>Tamam</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

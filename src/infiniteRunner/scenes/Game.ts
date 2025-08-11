@@ -124,6 +124,15 @@ export default class Game extends Phaser.Scene{
             shadow: {fill: true, blur: 0, offsetY: 0},
             padding: {left: 15, right: 15, top: 10, bottom: 10}
         }).setScrollFactor(0)
+
+        // BGM
+        const existing = this.sound.get('bgm') as Phaser.Sound.BaseSound | null;
+        if (existing) {
+            if (!existing.isPlaying) existing.play({ loop: true, volume: 0.25 });
+        } else {
+            const music = this.sound.add('bgm', { loop: true, volume: 0.25 });
+            music.play();
+        }
     }
     update(){
         this.wrapMouseHole()

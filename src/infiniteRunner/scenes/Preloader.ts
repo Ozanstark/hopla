@@ -15,6 +15,8 @@ import SceneKeys from '../consts/SceneKeys';
 import AnimationKeys from '../consts/AnimationKeys';
 import coinSfx from '../assets/audio/coin.wav'
 import hitSfx from '../assets/audio/hit.wav'
+import clickSfx from '../assets/audio/click.wav'
+import bgmMp3 from '../assets/audio/bgm.mp3'
 
 /**
  * Scene to preload components and assets
@@ -44,6 +46,8 @@ export default class Preloader extends Phaser.Scene{
         // Audio SFX
         this.load.audio('sfx-coin', coinSfx);
         this.load.audio('sfx-hit', hitSfx);
+        this.load.audio('sfx-click', clickSfx);
+        this.load.audio('bgm', bgmMp3);
     }
     create(){
         this.anims.create({
