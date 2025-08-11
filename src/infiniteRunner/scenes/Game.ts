@@ -218,6 +218,9 @@ export default class Game extends Phaser.Scene{
     private handleOverlapLaser(){
         console.log("overlap!")
         this.mouse.kill()
+        try {
+            window.dispatchEvent(new CustomEvent('infinite-runner:game-over', { detail: { score: this.score } }))
+        } catch {}
     }
     private wrapMouseHole(){
         const scrollX = this.cameras.main.scrollX;

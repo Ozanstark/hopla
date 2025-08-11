@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import Preloader from "@/infiniteRunner/scenes/Preloader";
 import GameScene from "@/infiniteRunner/scenes/Game";
@@ -42,7 +42,19 @@ const GamePage = () => {
     };
   }, []);
 
-  const text = encodeURIComponent("Phaser 3 ile yapılmış Infinite Runner'ı oyna!");
+  const [lastScore, setLastScore] = useState(0);
+
+  useEffect(() => {
+    const onGameOver = (e: Event) => {
+      const detail = (e as CustomEvent<{ score: number }>).detail;
+      setLastScore(detail?.score ?? 0);
+    };
+    window.addEventListener('infinite-runner:game-over', onGameOver as EventListener);
+    return () => window.removeEventListener('infinite-runner:game-over', onGameOver as EventListener);
+  }, []);
+
+  const rockets = "🚀🚀🚀";
+  const text = encodeURIComponent(`Hörikeynle 100 Milyona oyununda ${lastScore} skor aldım. ${rockets}\nLink:`);
   const url = encodeURIComponent(window.location.href);
   const shareHref = `https://x.com/intent/tweet?text=${text}&url=${url}`;
 
