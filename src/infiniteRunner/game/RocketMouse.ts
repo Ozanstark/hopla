@@ -10,19 +10,16 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys
     private mouse: Phaser.GameObjects.Sprite
     private mouseState = MouseState.Running
-    private hasAnims: boolean = false
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y);
 
-        this.mouse = scene.add.sprite(0, 0, TextureKeys.CustomMouse)
-            .setOrigin(0.5, 1);
-        
-        // Check if animation keys exist; if yes we can play them on atlas sprites
-        this.hasAnims = scene.anims.exists(AnimationKeys.RocketMouseRun);
+        this.mouse = scene.add.sprite(0, 0, TextureKeys.RocketMouse)
+            .setOrigin(0.5, 1)
+            .play(AnimationKeys.RocketMouseRun);
 
         this.flames = scene.add.sprite(-62, -15, TextureKeys.RocketMouse)
-            .setVisible(false)
+            .play(AnimationKeys.RocketFlamesOn)
         this.enableJetpack(false);
         this.add(this.flames);
         this.add(this.mouse);
@@ -46,7 +43,7 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
                         body.setAccelerationY(-600)
                         this.enableJetpack(true)
 
-                        if (this.hasAnims) this.mouse.play(AnimationKeys.RocketMouseFly, true)
+                        this.mouse.play(AnimationKeys.RocketMouseFly, true)
                     }
                     else {
                         body.setAccelerationY(0)
@@ -54,11 +51,11 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
                     }
 
                     if (body.blocked.down) {
-                        if (this.hasAnims) this.mouse.play(AnimationKeys.RocketMouseRun, true)
+                        this.mouse.play(AnimationKeys.RocketMouseRun, true)
                     }
-                        else if (body.velocity.y > 0) {
-                            if (this.hasAnims) this.mouse.play(AnimationKeys.RocketMouseFall, true)
-                        }
+                    else if (body.velocity.y > 0) {
+                        this.mouse.play(AnimationKeys.RocketMouseFall, true)
+                    }
                     break
                 }
             case MouseState.Killed:
@@ -79,7 +76,7 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
         }
     }
     enableJetpack(enabled: boolean) {
-        this.flames.setVisible(false);
+        this.flames.setVisible(enabled);
     }
     kill(): void {
         if (this.mouseState !== MouseState.Running) {
@@ -88,7 +85,7 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
 
         this.mouseState = MouseState.Killed;
 
-        if (this.hasAnims) this.mouse.play(AnimationKeys.RocketMouseDead)
+        this.mouse.play(AnimationKeys.RocketMouseDead)
 
         const body = this.body as Phaser.Physics.Arcade.Body
         body.setAccelerationY(0)
