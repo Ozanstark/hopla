@@ -56,13 +56,16 @@ const GamePage = () => {
   return <main className="min-h-screen flex flex-col items-center justify-center bg-background">
       <h1 className="text-3xl md:text-4xl font-bold mb-4">Hörikeyn'le    100   Milyona   hopla</h1>
       
-      <div className="mb-6">
+      <div className="mb-3">
         <Button variant="secondary" asChild>
           <a href={shareHref} target="_blank" rel="noopener noreferrer" aria-label="X'te paylaş">
             <Share2 /> X'te Paylaş
           </a>
         </Button>
       </div>
+      <p className="text-sm text-muted-foreground mb-6">
+        Powered by{' '}<a href="https://x.com/ozanstark" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80">@ozanstark</a>
+      </p>
       <div ref={parentRef} className="rounded-lg overflow-hidden border" aria-label="Game canvas" />
     </main>;
 };
