@@ -13,6 +13,8 @@ import rocketMouseData from '../assets/characters/rocket-mouse.json'
 import TextureKeys from '../consts/TextureKeys';
 import SceneKeys from '../consts/SceneKeys';
 import AnimationKeys from '../consts/AnimationKeys';
+import coinSfx from '../assets/audio/coin.wav'
+import hitSfx from '../assets/audio/hit.wav'
 
 /**
  * Scene to preload components and assets
@@ -38,6 +40,10 @@ export default class Preloader extends Phaser.Scene{
         this.load.image(TextureKeys.Coin, coin);
         //Load the character as an atlas
         this.load.atlas(TextureKeys.RocketMouse,rocketMouse, rocketMouseData);
+
+        // Audio SFX
+        this.load.audio('sfx-coin', coinSfx);
+        this.load.audio('sfx-hit', hitSfx);
     }
     create(){
         this.anims.create({

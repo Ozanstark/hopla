@@ -181,6 +181,7 @@ export default class Game extends Phaser.Scene{
 
         this.score += 1;
         this.scoreLabel.text = `Score: ${this.score}`;
+        this.sound.play('sfx-coin', { volume: 0.5 });
     }
     private spawnCoins(){
         this.coins.children.each((child: Phaser.GameObjects.GameObject) => {
@@ -219,6 +220,7 @@ export default class Game extends Phaser.Scene{
     }
     private handleOverlapLaser(){
         console.log("overlap!")
+        this.sound.play('sfx-hit', { volume: 0.6 });
         this.mouse.kill()
         try {
             window.dispatchEvent(new CustomEvent('infinite-runner:game-over', { detail: { score: this.score } }))
