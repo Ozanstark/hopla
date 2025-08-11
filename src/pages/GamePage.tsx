@@ -54,17 +54,18 @@ const GamePage = () => {
   const [lastScore, setLastScore] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [playerName, setPlayerName] = useState("");
-type ScoreEntry = { name: string; score: number; date: number };
+type ScoreEntry = { name: string; score: number; date: number; twitterUsername?: string };
 const [leaderboard, setLeaderboard] = useState<ScoreEntry[]>([]);
 const [isPaused, setIsPaused] = useState(false);
 const [isMuted, setIsMuted] = useState(false);
 const [isHowToOpen, setIsHowToOpen] = useState(false);
 const { toast } = useToast();
+const [twitterUsername, setTwitterUsername] = useState("");
 
   const fetchTopScores = async () => {
     const { data, error } = await supabase
       .from('game_scores')
-      .select('player_name, score, created_at')
+      .select('player_name, score, created_at, twitter_username')
       .order('score', { ascending: false })
       .limit(20);
     if (error) {
@@ -77,6 +78,7 @@ const { toast } = useToast();
         name: d.player_name,
         score: d.score,
         date: new Date(d.created_at).getTime(),
+        twitterUsername: d.twitter_username || undefined,
       }))
     );
   };
@@ -84,6 +86,8 @@ const { toast } = useToast();
   useEffect(() => {
     const savedName = localStorage.getItem('ir-player-name') || '';
     setPlayerName(savedName);
+    const savedTw = localStorage.getItem('ir-twitter-username') || '';
+    setTwitterUsername(savedTw);
     fetchTopScores();
   }, []);
 
@@ -129,11 +133,23 @@ const { toast } = useToast();
     }
   }, []);
 
+  const sanitizeTwitter = (raw: string) => {
+    const v = (raw || '').trim();
+    // Extract from URL if provided
+    const urlMatch = v.match(/(?:twitter|x)\.com\/(?:#!\/)?@?([A-Za-z0-9_]{1,15})/i);
+    let handle = urlMatch ? urlMatch[1] : v.replace(/^@/, '');
+    handle = handle.replace(/[^A-Za-z0-9_]/g, '').slice(0, 15);
+    return handle;
+  };
+
   const submitScore = async () => {
     const name = playerName.trim() || 'Misafir';
+    const handle = sanitizeTwitter(twitterUsername);
     localStorage.setItem('ir-player-name', name);
+    localStorage.setItem('ir-twitter-username', handle);
     try {
-      const { error } = await supabase.from('game_scores').insert({ player_name: name, score: lastScore });
+      const payload: any = { player_name: name, score: lastScore, twitter_username: handle || null };
+      const { error } = await supabase.from('game_scores').insert(payload as any);
       if (error) throw error;
       toast({ title: 'Skor kaydedildi!', description: 'Tebrikler 🎉' });
       setIsDialogOpen(false);
@@ -213,7 +229,20 @@ const { toast } = useToast();
                       <li key={e.date} className="group flex items-center justify-between rounded-md border px-3 py-2 bg-card/50 hover:bg-accent/30 transition-colors">
                         <div className="flex items-center gap-3 min-w-0">
                           <span className={`w-8 h-8 grid place-content-center rounded-full text-sm font-bold ${rankClasses}`}>{i + 1}</span>
-                          <span className="truncate font-medium">{e.name}</span>
+                          <div className="min-w-0 flex items-center gap-2">
+                            <span className="truncate font-medium">{e.name}</span>
+                            {e.twitterUsername && (
+                              <a
+                                href={`https://x.com/${e.twitterUsername}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-muted-foreground hover:underline"
+                                aria-label={`${e.name} Twitter profili`}
+                              >
+                                @{e.twitterUsername}
+                              </a>
+                            )}
+                          </div>
                         </div>
                         <span className="font-semibold tabular-nums">{e.score}</span>
                       </li>
@@ -235,6 +264,11 @@ const { toast } = useToast();
           <div className="grid gap-2 py-2">
             <Label htmlFor="name">İsim</Label>
             <Input id="name" value={playerName} onChange={(e)=>setPlayerName(e.target.value)} placeholder="Adın" />
+          </div>
+          <div className="grid gap-2 py-2">
+            <Label htmlFor="twitter">Twitter kullanıcı adı (opsiyonel)</Label>
+            <Input id="twitter" value={twitterUsername} onChange={(e)=>setTwitterUsername(e.target.value)} placeholder="@kullaniciadi" />
+            <p className="text-xs text-muted-foreground">Sadece kullanıcı adı yeterli; @ veya x.com/… yazdıysan otomatik temizleriz.</p>
           </div>
           <DialogFooter>
             <Button onClick={() => { playClick(); submitScore(); }}>Kaydet</Button>
