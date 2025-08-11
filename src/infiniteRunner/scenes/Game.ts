@@ -26,11 +26,29 @@ export default class Game extends Phaser.Scene{
     private scoreLabel!: Phaser.GameObjects.Text
     private score:number = 0
 
+    // Difficulty and UX
+    private reduceMotion = false
+    private isAlive = true
+    private currentSpeed = 200
+    private maxSpeed = 420
+    private speedAccel = 12 // per second
+
+    // Magnet power-up
+    private magnets!: Phaser.Physics.Arcade.StaticGroup
+    private magnetActive = false
+    private magnetRadius = 180
+
+    // Resume countdown
+    private resumeText?: Phaser.GameObjects.Text
+
     constructor(){
         super(SceneKeys.Game)
     }
     init(){
         this.score = 0;
+        this.isAlive = true;
+        this.currentSpeed = 200;
+        this.magnetActive = false;
     }
     public preload():void{
 
@@ -89,7 +107,7 @@ export default class Game extends Phaser.Scene{
 
         const body = this.mouse.body as Phaser.Physics.Arcade.Body;
         body.setCollideWorldBounds(true);
-        body.setVelocityX(200);
+        body.setVelocityX(this.currentSpeed);
         // Setting world bounds
         this.physics.world.setBounds(
             0, // X 
@@ -117,6 +135,33 @@ export default class Game extends Phaser.Scene{
             this
         )
 
+        // Preferences
+        this.reduceMotion = (typeof localStorage !== 'undefined' && localStorage.getItem('ir-reduce-motion') === '1');
+
+        // Magnet pickups
+        this.magnets = this.physics.add.staticGroup();
+        this.physics.add.overlap(
+            this.magnets,
+            this.mouse,
+            this.handleCollectMagnet as unknown as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+            undefined,
+            this
+        );
+
+        // Resume countdown handler
+        this.events.on('resume', () => {
+            this.startResumeCountdown();
+        });
+
+        // Listen for reduce-motion changes from UI
+        const onReduceMotionChange = (e: any) => {
+            this.reduceMotion = !!(e?.detail);
+        };
+        window.addEventListener('ir:reduce-motion-change', onReduceMotionChange as EventListener);
+        this.events.once('shutdown', () => {
+            window.removeEventListener('ir:reduce-motion-change', onReduceMotionChange as EventListener);
+        });
+
         this.scoreLabel = this.add.text(10, 10, `Score: ${this.score}`, {
             fontSize: "24px",
             color: "#080808",
@@ -140,6 +185,36 @@ export default class Game extends Phaser.Scene{
         this.wrapBookcases()
         this.wrapLaserObstacle()
         this.background.setTilePosition(this.cameras.main.scrollX);
+
+        // Progressive difficulty: ramp horizontal speed while alive
+        if (this.isAlive && !this.physics.world.isPaused) {
+            const body = this.mouse.body as Phaser.Physics.Arcade.Body;
+            const dt = this.game.loop.delta / 1000;
+            this.currentSpeed = Math.min(this.maxSpeed, this.currentSpeed + this.speedAccel * dt);
+            body.setVelocityX(this.currentSpeed);
+        }
+        
+        // Magnet attraction towards the mouse
+        if (this.magnetActive) {
+            const mx = this.mouse.x;
+            const my = this.mouse.y;
+            this.coins.children.each((child: Phaser.GameObjects.GameObject) => {
+                const coin = child as Phaser.Physics.Arcade.Sprite
+                if (!coin.active) {
+                    return true
+                }
+                const dx = mx - coin.x;
+                const dy = my - coin.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < this.magnetRadius) {
+                    coin.x += (dx / (dist || 1)) * 200 * (this.game.loop.delta / 1000);
+                    coin.y += (dy / (dist || 1)) * 200 * (this.game.loop.delta / 1000);
+                    const body = coin.body as Phaser.Physics.Arcade.StaticBody
+                    body.updateFromGameObject()
+                }
+                return true
+            }, this)
+        }
         
         this.teleportBackwards()
     }
@@ -164,6 +239,10 @@ export default class Game extends Phaser.Scene{
             laserBody.x -= maxX
 
             this.spawnCoins()
+            // Rare chance to spawn a magnet pickup
+            if (Phaser.Math.Between(0, 3) === 0) {
+                this.spawnMagnet();
+            }
             
             this.coins.children.each((child: Phaser.GameObjects.GameObject) => {
                 const coin = child as Phaser.Physics.Arcade.Sprite
@@ -173,6 +252,18 @@ export default class Game extends Phaser.Scene{
 
                 coin.x -= maxX
                 const body = coin.body as Phaser.Physics.Arcade.StaticBody
+                body.updateFromGameObject()
+                return true
+            }, this)
+
+            // Shift magnet pickups as well
+            this.magnets?.children.each((child: Phaser.GameObjects.GameObject) => {
+                const m = child as Phaser.Physics.Arcade.Sprite
+                if (!m.active) {
+                    return true
+                }
+                m.x -= maxX
+                const body = m.body as Phaser.Physics.Arcade.StaticBody
                 body.updateFromGameObject()
                 return true
             }, this)
@@ -188,23 +279,25 @@ export default class Game extends Phaser.Scene{
         coin.body.enable = false;
 
         // Simple burst effect (tweened sprites) + haptics
-        try {
-          for (let i = 0; i < 8; i++) {
-            const s = this.add.image(coin.x, coin.y, TextureKeys.Coin).setScale(0.4).setAlpha(0.9);
-            this.tweens.add({
-              targets: s,
-              x: coin.x + Phaser.Math.Between(-80, 80),
-              y: coin.y + Phaser.Math.Between(-80, 80),
-              alpha: 0,
-              scale: 0,
-              duration: 350,
-              ease: 'Quad.easeOut',
-              onComplete: () => s.destroy()
-            });
+        if (!this.reduceMotion) {
+          try {
+            for (let i = 0; i < 8; i++) {
+              const s = this.add.image(coin.x, coin.y, TextureKeys.Coin).setScale(0.4).setAlpha(0.9);
+              this.tweens.add({
+                targets: s,
+                x: coin.x + Phaser.Math.Between(-80, 80),
+                y: coin.y + Phaser.Math.Between(-80, 80),
+                alpha: 0,
+                scale: 0,
+                duration: 350,
+                ease: 'Quad.easeOut',
+                onComplete: () => s.destroy()
+              });
+            }
+          } catch {}
+          if (typeof navigator !== "undefined" && 'vibrate' in navigator) {
+            try { navigator.vibrate(10); } catch {}
           }
-        } catch {}
-        if (typeof navigator !== "undefined" && 'vibrate' in navigator) {
-          try { navigator.vibrate(10); } catch {}
         }
 
         this.score += 1;
@@ -246,13 +339,80 @@ export default class Game extends Phaser.Scene{
             
         }
     }
+
+    private spawnMagnet(){
+        const scrollX = this.cameras.main.scrollX;
+        const rightEdge = scrollX + this.scale.width;
+        const x = rightEdge + Phaser.Math.Between(200, 800);
+        const y = Phaser.Math.Between(120, this.scale.height - 140);
+        const pickup = this.magnets.get(x, y, TextureKeys.Coin) as Phaser.Physics.Arcade.Sprite;
+        if (!pickup) return;
+        pickup.setTint(0x00c8ff).setScale(0.9);
+        pickup.setVisible(true);
+        pickup.setActive(true);
+        const body = pickup.body as Phaser.Physics.Arcade.StaticBody;
+        body.setCircle(body.width * 0.5);
+        body.enable = true;
+        body.updateFromGameObject();
+    }
+
+    private handleCollectMagnet(
+        obj1: Phaser.Types.Physics.Arcade.GameObjectWithBody,
+        obj2: Phaser.Types.Physics.Arcade.GameObjectWithBody
+    ){
+        const pickup = obj1 as Phaser.Physics.Arcade.Sprite;
+        this.magnets.killAndHide(pickup);
+        pickup.body.enable = false;
+
+        this.magnetActive = true;
+        // Auto-disable after duration
+        this.time.delayedCall(6000, () => { this.magnetActive = false; });
+
+        if (!this.reduceMotion) {
+            // Small pulse effect
+            const circle = this.add.circle(this.mouse.x, this.mouse.y, 10, 0x00c8ff, 0.25).setScrollFactor(0);
+            this.tweens.add({
+                targets: circle,
+                radius: 80,
+                alpha: 0,
+                duration: 400,
+                onComplete: () => circle.destroy()
+            });
+            try { this.sound.play('sfx-coin', { volume: 0.3 }); } catch {}
+        }
+    }
+
+    private startResumeCountdown(){
+        // Pause physics while counting down
+        this.physics.world.pause();
+        const makeText = (txt: string) => {
+            if (this.resumeText) this.resumeText.destroy();
+            this.resumeText = this.add.text(this.scale.width/2, this.scale.height/2, txt, {
+                fontSize: '64px',
+                color: '#ffffff',
+                backgroundColor: '#00000080',
+                padding: { left: 20, right: 20, top: 10, bottom: 10 }
+            }).setOrigin(0.5).setScrollFactor(0);
+        };
+        makeText('3');
+        this.time.delayedCall(700, () => { makeText('2'); });
+        this.time.delayedCall(1400, () => { makeText('1'); });
+        this.time.delayedCall(2100, () => {
+            if (this.resumeText) { this.resumeText.destroy(); this.resumeText = undefined; }
+            this.physics.world.resume();
+        });
+    }
     private handleOverlapLaser(){
         console.log("overlap!")
         this.sound.play('sfx-hit', { volume: 0.6 });
+        this.isAlive = false;
+        this.magnetActive = false;
         // Camera shake + haptics
-        try { this.cameras.main.shake(250, 0.01); } catch {}
-        if (typeof navigator !== "undefined" && 'vibrate' in navigator) {
-          try { navigator.vibrate([40, 80, 40]); } catch {}
+        if (!this.reduceMotion) {
+            try { this.cameras.main.shake(250, 0.01); } catch {}
+            if (typeof navigator !== "undefined" && 'vibrate' in navigator) {
+              try { navigator.vibrate([40, 80, 40]); } catch {}
+            }
         }
         this.mouse.kill()
         try {

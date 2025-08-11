@@ -4,7 +4,7 @@ import Preloader from "@/infiniteRunner/scenes/Preloader";
 import GameScene from "@/infiniteRunner/scenes/Game";
 import GameOver from "@/infiniteRunner/scenes/GameOver";
 import { Button } from "@/components/ui/button";
-import { Share2, HelpCircle, Pause, Play, Trophy, Smartphone } from "lucide-react";
+import { Share2, HelpCircle, Pause, Play, Trophy, Smartphone, Maximize, Minimize } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +60,8 @@ type ScoreEntry = { name: string; score: number; date: number; twitterUsername?:
 const [leaderboard, setLeaderboard] = useState<ScoreEntry[]>([]);
 const [isPaused, setIsPaused] = useState(false);
 const [isMuted, setIsMuted] = useState(false);
+const [isFullscreen, setIsFullscreen] = useState<boolean>(!!document.fullscreenElement);
+const [reduceMotion, setReduceMotion] = useState<boolean>(false);
 const [isHowToOpen, setIsHowToOpen] = useState(false);
 const { toast } = useToast();
 const [twitterUsername, setTwitterUsername] = useState("");
@@ -100,6 +102,15 @@ const [period, setPeriod] = useState<"all" | "today">("all");
     const savedTw = localStorage.getItem('ir-twitter-username') || '';
     setTwitterUsername(savedTw);
     fetchTopScores();
+
+    // Init reduce motion + fullscreen listener
+    const saved = localStorage.getItem('ir-reduce-motion') === '1';
+    setReduceMotion(saved);
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFsChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -220,6 +231,24 @@ const [period, setPeriod] = useState<"all" | "today">("all");
     }
   };
 
+  const toggleFullscreen = async () => {
+    playClick();
+    try {
+      if (!document.fullscreenElement) {
+        await parentRef.current?.requestFullscreen?.();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch {}
+  };
+
+  const handleReduceMotion = (v: boolean) => {
+    playClick();
+    setReduceMotion(v);
+    localStorage.setItem('ir-reduce-motion', v ? '1' : '0');
+    window.dispatchEvent(new CustomEvent('ir:reduce-motion-change', { detail: v }));
+  };
+
   async function fireConfetti() {
     try {
       const confetti = (await import('canvas-confetti')).default;
@@ -240,12 +269,19 @@ const [period, setPeriod] = useState<"all" | "today">("all");
               <Button variant="secondary" onClick={() => { playClick(); handleShare(); }} aria-label="Paylaş">
                 <Share2 className="mr-1 h-4 w-4" /> Paylaş
               </Button>
+              <Button variant="secondary" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Tam ekrandan çık' : 'Tam ekran'}>
+                {isFullscreen ? <Minimize className="mr-1 h-4 w-4" /> : <Maximize className="mr-1 h-4 w-4" />} {isFullscreen ? 'Çık' : 'Tam ekran'}
+              </Button>
               <Button variant="outline" onClick={() => { playClick(); handlePauseToggle(); }} aria-label={isPaused ? 'Devam et' : 'Duraklat'}>
                 {isPaused ? <Play className="mr-1 h-4 w-4" /> : <Pause className="mr-1 h-4 w-4" />} {isPaused ? 'Devam' : 'Duraklat'}
               </Button>
               <div className="flex items-center gap-2">
                 <Label htmlFor="mute">Sessiz</Label>
                 <Switch id="mute" checked={isMuted} onCheckedChange={(v)=>{ playClick(); setIsMuted(v); }} aria-label="Sesi kapat/aç" />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="rm">Azaltılmış hareket</Label>
+                <Switch id="rm" checked={reduceMotion} onCheckedChange={handleReduceMotion} aria-label="Hareket efektlerini azalt" />
               </div>
               <Button variant="outline" onClick={() => { playClick(); setIsHowToOpen(true); }} aria-label="Nasıl oynanır?">
                 <HelpCircle className="mr-1 h-4 w-4" /> Nasıl oynanır?
