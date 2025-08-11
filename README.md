@@ -1,58 +1,48 @@
-# Welcome to your Lovable project
+# Infinite Runner Arcade Game
 
-## Project info
+Modern web teknolojileriyle geliştirilmiş bir sonsuz koşu (infinite runner) oyunu.
 
-**URL**: https://lovable.dev/projects/9b69d22d-03ec-4425-ae49-993c63dfea65
+## Proje Bilgisi
 
-## How can I edit this code?
+- Canlı adres: https://hopla-puce.vercel.app/
 
-There are several ways of editing your application.
+## Nasıl düzenleyebilirim?
 
-**Use Lovable**
+Uygulamayı düzenlemenin birden fazla yolu var.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9b69d22d-03ec-4425-ae49-993c63dfea65) and start prompting.
+### Yerel ortamda geliştirme (Önerilen)
 
-Changes made via Lovable will be committed automatically to this repo.
+Ön koşullar: Node.js ve npm yüklü olmalı — nvm ile kurulum: https://github.com/nvm-sh/nvm#installing-and-updating
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Adımlar:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# 1) Depoyu klonlayın (kendi Git URL'inizi kullanın)
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# 2) Proje klasörüne girin
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
+# 3) Bağımlılıkları yükleyin
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4) Geliştirme sunucusunu başlatın (hot-reload ile)
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### GitHub üzerinden dosya düzenleme
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- İlgili dosyaya gidin.
+- Sağ üstteki "Edit" (kalem) butonuna tıklayın.
+- Değişikliklerinizi yapıp commit edin.
 
-**Use GitHub Codespaces**
+### GitHub Codespaces
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Depo ana sayfasında "Code" butonuna tıklayın.
+- "Codespaces" sekmesini seçin ve yeni bir Codespace oluşturun.
+- Codespace içinde düzenleyip commit/push yapın.
 
-## What technologies are used for this project?
-
-This project is built with:
+## Kullanılan Teknolojiler
 
 - Vite
 - TypeScript
@@ -60,14 +50,31 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Komutlar
 
-Simply open [Lovable](https://lovable.dev/projects/9b69d22d-03ec-4425-ae49-993c63dfea65) and click on Share -> Publish.
+```sh
+# Geliştirme
+npm run dev
 
-## Can I connect a custom domain to my Lovable project?
+# Üretim için derleme
+npm run build
 
-Yes, you can!
+# Derlenen çıktıyı yerelde ön izleme
+npm run preview
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Dağıtım (Vercel)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Proje, Vercel üzerinde barındırılabilir.
+
+1) Vercel hesabınızla giriş yapın ve "New Project" deyin.
+2) Bu GitHub reposunu içe aktarın.
+3) Framework: Vite | Build Command: `npm run build` | Output: `dist`
+4) Deploy butonuna tıklayın.
+
+Canlı adres: https://hopla-puce.vercel.app/
+
+## Notlar
+
+- Proje React + Vite + Tailwind CSS yapısı kullanır.
+- shadcn-ui bileşenleriyle arayüz oluşturulmuştur.
