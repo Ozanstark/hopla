@@ -434,6 +434,27 @@ export type Database = {
         }
         Relationships: []
       }
+      site_counters: {
+        Row: {
+          count: number
+          id: string
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          count?: number
+          id?: string
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          count?: number
+          id?: string
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string
@@ -496,7 +517,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_counter: {
+        Args: { counter_key: string; delta?: number }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
