@@ -269,7 +269,20 @@ const [period, setPeriod] = useState<"all" | "today">("all");
               <Button variant="secondary" onClick={() => { playClick(); handleShare(); }} aria-label="Paylaş">
                 <Share2 className="mr-1 h-4 w-4" /> Paylaş
               </Button>
-              <Button variant="secondary" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Tam ekrandan çık' : 'Tam ekran'}>
+              <Button
+                variant="secondary"
+                onClick={async () => {
+                  playClick();
+                  try {
+                    if (!document.fullscreenElement) {
+                      await parentRef.current?.requestFullscreen?.();
+                    } else {
+                      await document.exitFullscreen();
+                    }
+                  } catch {}
+                }}
+                aria-label={isFullscreen ? 'Tam ekrandan çık' : 'Tam ekran'}
+              >
                 {isFullscreen ? <Minimize className="mr-1 h-4 w-4" /> : <Maximize className="mr-1 h-4 w-4" />} {isFullscreen ? 'Çık' : 'Tam ekran'}
               </Button>
               <Button variant="outline" onClick={() => { playClick(); handlePauseToggle(); }} aria-label={isPaused ? 'Devam et' : 'Duraklat'}>
