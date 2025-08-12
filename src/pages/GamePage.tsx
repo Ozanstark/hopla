@@ -20,9 +20,10 @@ const GamePage = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
   const parentRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    document.title = "Phaser Infinite Runner | Play";
+    document.title = "Roketle! | Infinite Runner Arcade Game";
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Play the Phaser 3 infinite runner game in your browser.");
+    const desc = "Fast-paced infinite runner arcade game. Dodge lasers, collect coins, and climb the leaderboard. Play instantly in your browser.";
+    if (meta) meta.setAttribute("content", desc);
   }, []);
   useEffect(() => {
     if (gameRef.current || !parentRef.current) return;
