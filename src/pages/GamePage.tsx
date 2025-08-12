@@ -313,22 +313,24 @@ const [period, setPeriod] = useState<"all" | "today">("all");
             </p>
           </div>
           <Card className="p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-primary" /> Skorboard
               </h2>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Select value={period} onValueChange={(v) => setPeriod(v as "all" | "today")}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-[160px]" aria-label="Skor filtresi">
                     <SelectValue placeholder="Filtre" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50 bg-popover text-popover-foreground shadow-lg">
                     <SelectItem value="all">Tümü</SelectItem>
                     <SelectItem value="today">Bugün</SelectItem>
                   </SelectContent>
                 </Select>
                 {lastScore > 0 && (
-                  <Badge variant="secondary" aria-label="Son skor">Son skor: {lastScore}</Badge>
+                  <div className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground whitespace-nowrap">
+                    Son skor: <span className="font-semibold text-foreground">{lastScore}</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -346,11 +348,11 @@ const [period, setPeriod] = useState<"all" | "today">("all");
                       ? 'bg-accent text-accent-foreground'
                       : 'bg-muted text-muted-foreground';
                     return (
-                      <li key={e.date} className="group flex items-center justify-between rounded-md border px-3 py-2 bg-card/50 hover:bg-accent/30 transition-colors">
+                      <li key={e.date} className="group grid grid-cols-[1fr_auto] items-center gap-3 rounded-xl border px-4 py-3 bg-card/70 hover:bg-accent/30 transition-colors">
                         <div className="flex items-center gap-3 min-w-0">
                           <span className={`w-8 h-8 grid place-content-center rounded-full text-sm font-bold ${rankClasses}`}>{i + 1}</span>
                           <div className="min-w-0 flex items-center gap-2">
-                            <span className="truncate font-medium">{e.name}</span>
+                            <span className="truncate font-semibold text-foreground">{e.name}</span>
                             {e.twitterUsername && (
                               <a
                                 href={`https://x.com/${e.twitterUsername}`}
@@ -364,7 +366,7 @@ const [period, setPeriod] = useState<"all" | "today">("all");
                             )}
                           </div>
                         </div>
-                        <span className="font-semibold tabular-nums">{e.score}</span>
+                        <span className="font-bold tabular-nums text-foreground text-lg leading-none tracking-tight ml-auto pl-2 shrink-0">{e.score}</span>
                       </li>
                     );
                   })
