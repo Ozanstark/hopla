@@ -15,11 +15,14 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y);
 
+        const SCALE = 0.8;
         this.mouse = scene.add.sprite(0, 0, TextureKeys.RocketMouse)
             .setOrigin(0.5, 1)
+            .setScale(SCALE)
             .play(AnimationKeys.RocketMouseRun);
 
-        this.flames = scene.add.sprite(-62, -15, TextureKeys.RocketMouse)
+        this.flames = scene.add.sprite(-62 * SCALE, -15 * SCALE, TextureKeys.RocketMouse)
+            .setScale(SCALE)
             .play(AnimationKeys.RocketFlamesOn)
         this.enableJetpack(false);
         this.add(this.flames);
@@ -28,8 +31,8 @@ export default class RocketMouse extends Phaser.GameObjects.Container {
         scene.physics.add.existing(this);
 
         const body = this.body as Phaser.Physics.Arcade.Body
-        body.setSize(this.mouse.width * 0.5, this.mouse.height * 0.7);
-        body.setOffset(this.mouse.width * -0.3, -this.mouse.height + 15)
+        body.setSize(this.mouse.width * 0.4, this.mouse.height * 0.6);
+        body.setOffset(this.mouse.width * -0.25, -this.mouse.height + 12)
 
         this.cursors = scene.input.keyboard.createCursorKeys();
 
