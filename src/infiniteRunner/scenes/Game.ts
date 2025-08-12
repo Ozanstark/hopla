@@ -29,9 +29,9 @@ export default class Game extends Phaser.Scene{
     // Difficulty and UX
     private reduceMotion = false
     private isAlive = true
-    private currentSpeed = 200
-    private maxSpeed = 420
-    private speedAccel = 12 // per second
+    private currentSpeed = 140
+    private maxSpeed = 300
+    private speedAccel = 6 // per second
 
     // Magnet power-up
     private magnets!: Phaser.Physics.Arcade.StaticGroup
@@ -40,6 +40,9 @@ export default class Game extends Phaser.Scene{
 
     // Resume countdown
     private resumeText?: Phaser.GameObjects.Text
+    // Start-of-run invincibility and hint
+    private isInvincible = false
+    private startText?: Phaser.GameObjects.Text
 
     constructor(){
         super(SceneKeys.Game)
@@ -47,7 +50,7 @@ export default class Game extends Phaser.Scene{
     init(){
         this.score = 0;
         this.isAlive = true;
-        this.currentSpeed = 200;
+        this.currentSpeed = 140;
         this.magnetActive = false;
     }
     public preload():void{
@@ -178,6 +181,23 @@ export default class Game extends Phaser.Scene{
             const music = this.sound.add('bgm', { loop: true, volume: 0.25 });
             music.play();
         }
+
+        // Start-of-run invincibility and hint
+        this.isInvincible = true;
+        const showStart = () => {
+            if (this.startText) this.startText.destroy();
+            this.startText = this.add.text(width/2, height/2, 'Hazır!', {
+                fontSize: '48px',
+                color: '#ffffff',
+                backgroundColor: '#00000080',
+                padding: { left: 16, right: 16, top: 8, bottom: 8 }
+            }).setOrigin(0.5).setScrollFactor(0);
+        };
+        showStart();
+        this.time.delayedCall(2000, () => {
+            this.isInvincible = false;
+            if (this.startText) { this.startText.destroy(); this.startText = undefined; }
+        });
     }
     update(){
         this.wrapMouseHole()
@@ -403,6 +423,7 @@ export default class Game extends Phaser.Scene{
         });
     }
     private handleOverlapLaser(){
+        if (this.isInvincible) return;
         console.log("overlap!")
         this.sound.play('sfx-hit', { volume: 0.6 });
         this.isAlive = false;
@@ -437,8 +458,8 @@ export default class Game extends Phaser.Scene{
         const width = this.laserObstacle.width
         if(this.laserObstacle.x + width < scrollX){
             this.laserObstacle.x = Phaser.Math.Between(
-                rightEdge+100,
-                rightEdge + 1000
+                rightEdge+800,
+                rightEdge + 1600
             );
             this.laserObstacle.y = Phaser.Math.Between(0, 300);
 
