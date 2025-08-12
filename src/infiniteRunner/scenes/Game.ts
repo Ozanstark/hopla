@@ -31,7 +31,7 @@ export default class Game extends Phaser.Scene{
     private isAlive = true
     private currentSpeed = 130
     private maxSpeed = 260
-    private speedAccel = 3 // per second
+    private speedAccel = 1 // per second
 
     // Magnet power-up
     private magnets!: Phaser.Physics.Arcade.StaticGroup
