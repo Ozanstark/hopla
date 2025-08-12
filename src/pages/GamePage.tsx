@@ -272,8 +272,15 @@ const [period, setPeriod] = useState<"all" | "today">("all");
   const shareOnTwitter = () => {
     const text = getShareText();
     const pageUrl = window.location.href;
-    const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(pageUrl)}&via=ozanstark&hashtags=Roketle,oyun`;
-    window.open(twitterUrl, '_blank', 'noopener');
+    const base = `https://x.com/intent/tweet`;
+    const q = `text=${encodeURIComponent(text)}&url=${encodeURIComponent(pageUrl)}&via=ozanstark&hashtags=Roketle,oyun`;
+    const url = `${base}?${q}`;
+    try {
+      // Direct navigation (avoids popup blockers in iframes)
+      window.location.assign(url);
+    } catch {
+      window.location.href = `https://twitter.com/intent/tweet?${q}`;
+    }
   };
 
   async function fireConfetti() {
