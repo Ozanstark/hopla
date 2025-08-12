@@ -20,9 +20,9 @@ const GamePage = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
   const parentRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    document.title = "Roketle! | Infinite Runner Arcade Game";
+    document.title = "Roketle! | Sonsuz Koşu Oyunu";
     const meta = document.querySelector('meta[name="description"]');
-    const desc = "Fast-paced infinite runner arcade game. Dodge lasers, collect coins, and climb the leaderboard. Play instantly in your browser.";
+    const desc = "Roketle! hızlı tempolu bir sonsuz koşu oyunu. Lazerlerden kaç, altınları topla ve skor tablosunda yüksel. Tarayıcında hemen oyna.";
     if (meta) meta.setAttribute("content", desc);
   }, []);
   useEffect(() => {
