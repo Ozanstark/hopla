@@ -212,32 +212,41 @@ const [period, setPeriod] = useState<"all" | "today">("all");
 
   const getShareText = () => `Hörikeyn'le 100 Milyona oyununda ${lastScore} skor aldım. 🚀🚀🚀`;
   const handleShare = async () => {
+    const shareText = `${getShareText()}\n${window.location.href}`;
+    const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&via=ozanstark`;
     try {
-      const canvas = parentRef.current?.querySelector('canvas');
-      const shareText = `${getShareText()}\n${window.location.href}`;
-      if (!canvas) {
-        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&via=ozanstark`, '_blank');
+      const canvas = parentRef.current?.querySelector('canvas') as HTMLCanvasElement | null;
+      let file: File | null = null;
+      if (canvas) {
+        // Use toBlob for better compatibility than dataURL fetch
+        const blob: Blob | null = await new Promise((resolve) => {
+          try { canvas.toBlob((b) => resolve(b), 'image/png'); } catch { resolve(null); }
+        });
+        if (blob) file = new File([blob], 'score.png', { type: 'image/png' });
+      }
+
+      const navAny = navigator as any;
+      if (file && navAny?.canShare?.({ files: [file] })) {
+        await navAny.share({ files: [file], title: 'Hörikeyn Oyun Skorum', text: getShareText() });
         return;
       }
-      const dataUrl = canvas.toDataURL('image/png');
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
-      const file = new File([blob], 'score.png', { type: 'image/png' });
-      const navAny = navigator as any;
-      if (navAny.canShare && navAny.canShare({ files: [file] })) {
-        await navAny.share({ files: [file], title: 'Hörikeyn Oyun Skorum', text: getShareText() });
-      } else if (navigator.share) {
+      if (navigator.share) {
         await navigator.share({ title: 'Hörikeyn Oyun Skorum', text: shareText });
-      } else {
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = 'score.png';
-        a.click();
-        window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&via=ozanstark`, '_blank');
+        return;
       }
+      // Fallback: open Twitter intent + optional download
+      if (file) {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'score.png'; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      window.open(twitterUrl, '_blank');
     } catch (err) {
       console.error(err);
-      toast({ title: 'Paylaşım başarısız', description: 'Tarayıcın paylaşımı desteklemiyor olabilir.', variant: 'destructive' });
+      // Last-resort fallback
+      window.open(twitterUrl, '_blank');
+      toast({ title: 'Paylaşım başarısız', description: 'Tarayıcın yerel paylaşımı desteklemiyor. Twitter penceresi açıldı.', variant: 'destructive' });
     }
   };
 
