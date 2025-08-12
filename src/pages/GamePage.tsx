@@ -339,14 +339,31 @@ const [period, setPeriod] = useState<"all" | "today">("all");
                 ) : (
                   leaderboard.map((e, i) => {
                     const rankClasses = i === 0
-                      ? 'bg-primary/20 text-primary ring-1 ring-primary/40'
+                      ? 'bg-gradient-to-br from-primary/20 to-primary/10 text-primary ring-1 ring-primary/40'
                       : i === 1
-                      ? 'bg-secondary text-secondary-foreground'
+                      ? 'bg-secondary/30 text-secondary-foreground ring-1 ring-secondary/40'
                       : i === 2
-                      ? 'bg-accent text-accent-foreground'
+                      ? 'bg-accent/30 text-accent-foreground ring-1 ring-accent/40'
                       : 'bg-muted text-muted-foreground';
+                    const rowBg = i === 0
+                      ? 'bg-gradient-to-r from-primary/10 to-transparent'
+                      : i === 1
+                      ? 'bg-gradient-to-r from-secondary/10 to-transparent'
+                      : i === 2
+                      ? 'bg-gradient-to-r from-accent/10 to-transparent'
+                      : 'bg-card/70';
+                    const scoreColor = i === 0
+                      ? 'text-primary'
+                      : i === 1
+                      ? 'text-secondary-foreground'
+                      : i === 2
+                      ? 'text-accent-foreground'
+                      : 'text-foreground';
                     return (
-                      <li key={e.date} className="group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl border px-4 py-3 bg-card/70 hover:bg-accent/30 transition-colors animate-fade-in">
+                      <li
+                        key={e.date}
+                        className={`group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl border px-4 py-3 ${rowBg} hover:bg-accent/30 transition-colors animate-fade-in shadow-sm hover:shadow`}
+                      >
                         <div className="flex items-center gap-3 min-w-0">
                           <span className={`w-8 h-8 grid place-content-center rounded-full text-sm font-bold ${rankClasses}`}>{i + 1}</span>
                           <div className="min-w-0 flex items-center gap-2">
@@ -371,7 +388,7 @@ const [period, setPeriod] = useState<"all" | "today">("all");
                             )}
                           </div>
                         </div>
-                        <span className="font-bold tabular-nums text-foreground text-lg leading-none tracking-tight ml-auto pl-2 shrink-0">{e.score}</span>
+                        <span className={`font-extrabold tabular-nums ${scoreColor} text-lg leading-none tracking-tight ml-auto pl-2 shrink-0`}>{e.score}</span>
                       </li>
                     );
                   })
