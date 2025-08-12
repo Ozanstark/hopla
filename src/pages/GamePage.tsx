@@ -210,7 +210,7 @@ const [period, setPeriod] = useState<"all" | "today">("all");
     }
   };
 
-  const getShareText = () => `Hörikeyn'le 100 Milyona oyununda ${lastScore} skor aldım. 🚀🚀🚀`;
+  const getShareText = () => `Roketle! oyununda ${lastScore} skor aldım. Hadi sen de oyna, skorunu paylaş! 🚀`;
   const handleShare = async () => {
     const shareText = `${getShareText()}\n${window.location.href}`;
     const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&via=ozanstark`;
