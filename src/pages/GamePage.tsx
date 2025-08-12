@@ -269,6 +269,13 @@ const [period, setPeriod] = useState<"all" | "today">("all");
     window.dispatchEvent(new CustomEvent('ir:reduce-motion-change', { detail: v }));
   };
 
+  const shareOnTwitter = () => {
+    const text = getShareText();
+    const pageUrl = window.location.href;
+    const twitterUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(pageUrl)}&via=ozanstark&hashtags=Roketle,oyun`;
+    window.open(twitterUrl, '_blank', 'noopener');
+  };
+
   async function fireConfetti() {
     try {
       const confetti = (await import('canvas-confetti')).default;
@@ -286,7 +293,7 @@ const [period, setPeriod] = useState<"all" | "today">("all");
                   <Smartphone className="mr-1 h-4 w-4" /> Yükle
                 </Button>
               )}
-              <Button variant="secondary" onClick={() => { playClick(); handleShare(); }} aria-label="Paylaş">
+              <Button variant="secondary" onClick={() => { playClick(); shareOnTwitter(); }} aria-label="Paylaş">
                 <Share2 className="mr-1 h-4 w-4" /> Paylaş
               </Button>
               <Button
