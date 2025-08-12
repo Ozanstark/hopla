@@ -43,8 +43,8 @@ const GamePage = () => {
         parent: parentRef.current!,
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-         width: 960,
-         height: 540
+         width: 800,
+         height: 640
       }
     };
     gameRef.current = new Phaser.Game(config);

@@ -100,7 +100,7 @@ export default class Game extends Phaser.Scene{
         this.bookcases = [this.bookcase1, this.bookcase2]
         this.laserObstacle = new LaserObstacle(this, 900, 100)
         this.add.existing(this.laserObstacle)
-        this.mouse = new RocketMouse(this, width * 0.5, height - 30)
+        this.mouse = new RocketMouse(this, width * 0.25, height - 30)
         this.add.existing(this.mouse);
 
         // Touch: tap/hold to fly handled inside RocketMouse
@@ -119,7 +119,7 @@ export default class Game extends Phaser.Scene{
             height -55 // Height
         )
 
-        this.cameras.main.startFollow(this.mouse);
+        this.cameras.main.startFollow(this.mouse, true, 1, 1, -this.scale.width * 0.25, 0);
         this.cameras.main.setBounds(0,0,Number.MAX_SAFE_INTEGER, height)
 
         this.physics.add.overlap(
