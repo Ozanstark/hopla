@@ -141,16 +141,6 @@ export default class Game extends Phaser.Scene{
         // Preferences
         this.reduceMotion = (typeof localStorage !== 'undefined' && localStorage.getItem('ir-reduce-motion') === '1');
 
-        // Magnet pickups
-        this.magnets = this.physics.add.staticGroup();
-        this.physics.add.overlap(
-            this.magnets,
-            this.mouse,
-            this.handleCollectMagnet as unknown as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
-            undefined,
-            this
-        );
-
         // Resume countdown handler
         this.events.on('resume', () => {
             this.startResumeCountdown();
@@ -214,28 +204,6 @@ export default class Game extends Phaser.Scene{
             body.setVelocityX(this.currentSpeed);
         }
         
-        // Magnet attraction towards the mouse
-        if (this.magnetActive) {
-            const mx = this.mouse.x;
-            const my = this.mouse.y;
-            this.coins.children.each((child: Phaser.GameObjects.GameObject) => {
-                const coin = child as Phaser.Physics.Arcade.Sprite
-                if (!coin.active) {
-                    return true
-                }
-                const dx = mx - coin.x;
-                const dy = my - coin.y;
-                const dist = Math.hypot(dx, dy);
-                if (dist < this.magnetRadius) {
-                    coin.x += (dx / (dist || 1)) * 200 * (this.game.loop.delta / 1000);
-                    coin.y += (dy / (dist || 1)) * 200 * (this.game.loop.delta / 1000);
-                    const body = coin.body as Phaser.Physics.Arcade.StaticBody
-                    body.updateFromGameObject()
-                }
-                return true
-            }, this)
-        }
-        
         this.teleportBackwards()
     }
     private teleportBackwards(){
@@ -259,10 +227,6 @@ export default class Game extends Phaser.Scene{
             laserBody.x -= maxX
 
             this.spawnCoins()
-            // Rare chance to spawn a magnet pickup
-            if (Phaser.Math.Between(0, 3) === 0) {
-                this.spawnMagnet();
-            }
             
             this.coins.children.each((child: Phaser.GameObjects.GameObject) => {
                 const coin = child as Phaser.Physics.Arcade.Sprite
@@ -276,17 +240,6 @@ export default class Game extends Phaser.Scene{
                 return true
             }, this)
 
-            // Shift magnet pickups as well
-            this.magnets?.children.each((child: Phaser.GameObjects.GameObject) => {
-                const m = child as Phaser.Physics.Arcade.Sprite
-                if (!m.active) {
-                    return true
-                }
-                m.x -= maxX
-                const body = m.body as Phaser.Physics.Arcade.StaticBody
-                body.updateFromGameObject()
-                return true
-            }, this)
         }
     }
     private handleCollectCoin(
@@ -326,15 +279,19 @@ export default class Game extends Phaser.Scene{
         this.sound.play('sfx-coin', { volume: 0.5 });
     }
     private spawnCoins(){
-        this.coins.children.each((child: Phaser.GameObjects.GameObject) => {
-            const coin = child as Phaser.Physics.Arcade.Sprite
-            this.coins.killAndHide(coin)
-            coin.body.enable = false
-            return true
-        }, this)
-
         const scrollX = this.cameras.main.scrollX;
         const rightEdge = scrollX + this.scale.width;
+
+        // Clean up only coins far behind the camera, keep visible ones
+        this.coins.children.each((child: Phaser.GameObjects.GameObject) => {
+            const coin = child as Phaser.Physics.Arcade.Sprite
+            const body = coin.body as Phaser.Physics.Arcade.StaticBody
+            if (coin.active && coin.x + coin.width < scrollX - 100) {
+                this.coins.killAndHide(coin)
+                body.enable = false
+            }
+            return true
+        }, this)
 
         let x = rightEdge + 100;
 
