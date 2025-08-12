@@ -267,7 +267,7 @@ const [period, setPeriod] = useState<"all" | "today">("all");
   }
   return <main className="min-h-screen w-full bg-background">
       <div className="container mx-auto p-4 md:p-6">
-        <h1 className="font-pixel text-2xl md:text-4xl lg:text-5xl mb-4 text-center text-rainbow animate-rainbow">Hörikeyn'le 100 Milyona hopla</h1>
+        <h1 className="font-pixel text-2xl md:text-4xl lg:text-5xl mb-4 text-center text-rainbow animate-rainbow">Roketle!</h1>
         <div className="grid gap-6 md:grid-cols-[1fr,320px] items-start">
           <div className="flex flex-col items-center">
             <div className="mb-3 flex flex-wrap items-center gap-2 justify-center">
