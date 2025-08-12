@@ -338,34 +338,28 @@ const [period, setPeriod] = useState<"all" | "today">("all");
                   <li className="text-muted-foreground text-sm">Henüz skor yok.</li>
                 ) : (
                   leaderboard.map((e, i) => {
-                    const rankClasses = i === 0
-                      ? 'bg-gradient-to-br from-primary/20 to-primary/10 text-primary ring-1 ring-primary/40'
+                    const rankBg = i === 0
+                      ? 'bg-[hsl(var(--gold)/.22)] text-[hsl(var(--gold))]'
                       : i === 1
-                      ? 'bg-secondary/30 text-secondary-foreground ring-1 ring-secondary/40'
+                      ? 'bg-[hsl(var(--silver)/.22)] text-[hsl(var(--silver))]'
                       : i === 2
-                      ? 'bg-accent/30 text-accent-foreground ring-1 ring-accent/40'
+                      ? 'bg-[hsl(var(--bronze)/.22)] text-[hsl(var(--bronze))]'
                       : 'bg-muted text-muted-foreground';
                     const rowBg = i === 0
-                      ? 'bg-gradient-to-r from-primary/10 to-transparent'
+                      ? 'bg-[linear-gradient(to_right,hsl(var(--gold)/.14),transparent)]'
                       : i === 1
-                      ? 'bg-gradient-to-r from-secondary/10 to-transparent'
+                      ? 'bg-[linear-gradient(to_right,hsl(var(--silver)/.14),transparent)]'
                       : i === 2
-                      ? 'bg-gradient-to-r from-accent/10 to-transparent'
+                      ? 'bg-[linear-gradient(to_right,hsl(var(--bronze)/.14),transparent)]'
                       : 'bg-card/70';
-                    const scoreColor = i === 0
-                      ? 'text-primary'
-                      : i === 1
-                      ? 'text-secondary-foreground'
-                      : i === 2
-                      ? 'text-accent-foreground'
-                      : 'text-foreground';
+                    const scoreColor = i < 3 ? 'text-foreground' : 'text-foreground';
                     return (
                       <li
                         key={e.date}
                         className={`group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl border px-4 py-3 ${rowBg} hover:bg-accent/30 transition-colors animate-fade-in shadow-sm hover:shadow`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <span className={`w-8 h-8 grid place-content-center rounded-full text-sm font-bold ${rankClasses}`}>{i + 1}</span>
+                          <span className={`w-8 h-8 grid place-content-center rounded-full text-sm font-bold ring-1 ring-border ${rankBg}`}>{i + 1}</span>
                           <div className="min-w-0 flex items-center gap-2">
                             <Tooltip>
                               <TooltipTrigger asChild>
