@@ -13,8 +13,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import usePWAInstall from "@/hooks/usePWAInstall";
 const GamePage = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -113,6 +113,9 @@ const [period, setPeriod] = useState<"all" | "today">("all");
       document.removeEventListener('fullscreenchange', onFsChange);
     };
   }, []);
+
+  // Refetch when period changes
+  useEffect(() => { fetchTopScores(); }, [period]);
 
   useEffect(() => {
     const onGameOver = (e: Event) => {
@@ -318,15 +321,10 @@ const [period, setPeriod] = useState<"all" | "today">("all");
                 <Trophy className="h-5 w-5 text-primary" /> Skorboard
               </h2>
               <div className="flex items-center gap-3">
-                <Select value={period} onValueChange={(v) => setPeriod(v as "all" | "today")}>
-                  <SelectTrigger className="w-[160px]" aria-label="Skor filtresi">
-                    <SelectValue placeholder="Filtre" />
-                  </SelectTrigger>
-                  <SelectContent className="z-50 bg-popover text-popover-foreground shadow-lg">
-                    <SelectItem value="all">Tümü</SelectItem>
-                    <SelectItem value="today">Bugün</SelectItem>
-                  </SelectContent>
-                </Select>
+                <ToggleGroup type="single" value={period} onValueChange={(v) => setPeriod((v as "all" | "today") || "all")} className="rounded-lg bg-muted/40 p-1">
+                  <ToggleGroupItem value="all" className="px-3 py-1.5 rounded-md data-[state=on]:bg-background data-[state=on]:text-foreground">Tümü</ToggleGroupItem>
+                  <ToggleGroupItem value="today" className="px-3 py-1.5 rounded-md data-[state=on]:bg-background data-[state=on]:text-foreground">Bugün</ToggleGroupItem>
+                </ToggleGroup>
                 {lastScore > 0 && (
                   <div className="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground whitespace-nowrap">
                     Son skor: <span className="font-semibold text-foreground">{lastScore}</span>
@@ -348,11 +346,18 @@ const [period, setPeriod] = useState<"all" | "today">("all");
                       ? 'bg-accent text-accent-foreground'
                       : 'bg-muted text-muted-foreground';
                     return (
-                      <li key={e.date} className="group grid grid-cols-[1fr_auto] items-center gap-3 rounded-xl border px-4 py-3 bg-card/70 hover:bg-accent/30 transition-colors">
+                      <li key={e.date} className="group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-xl border px-4 py-3 bg-card/70 hover:bg-accent/30 transition-colors animate-fade-in">
                         <div className="flex items-center gap-3 min-w-0">
                           <span className={`w-8 h-8 grid place-content-center rounded-full text-sm font-bold ${rankClasses}`}>{i + 1}</span>
                           <div className="min-w-0 flex items-center gap-2">
-                            <span className="truncate font-semibold text-foreground">{e.name}</span>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="truncate font-semibold text-foreground max-w-[140px] sm:max-w-[200px]">{e.name}</span>
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                <p className="text-xs">{e.name}</p>
+                              </TooltipContent>
+                            </Tooltip>
                             {e.twitterUsername && (
                               <a
                                 href={`https://x.com/${e.twitterUsername}`}
