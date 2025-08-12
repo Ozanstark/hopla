@@ -29,9 +29,9 @@ export default class Game extends Phaser.Scene{
     // Difficulty and UX
     private reduceMotion = false
     private isAlive = true
-    private currentSpeed = 140
-    private maxSpeed = 300
-    private speedAccel = 6 // per second
+    private currentSpeed = 130
+    private maxSpeed = 260
+    private speedAccel = 3 // per second
 
     // Magnet power-up
     private magnets!: Phaser.Physics.Arcade.StaticGroup
@@ -320,7 +320,8 @@ export default class Game extends Phaser.Scene{
           }
         }
 
-        this.score += 1;
+        const inc = this.score < 10 ? 2 : 1;
+        this.score += inc;
         this.scoreLabel.text = `Score: ${this.score}`;
         this.sound.play('sfx-coin', { volume: 0.5 });
     }
@@ -337,7 +338,8 @@ export default class Game extends Phaser.Scene{
 
         let x = rightEdge + 100;
 
-        const numCoins = Phaser.Math.Between(1,20)
+        const early = this.score < 10;
+        const numCoins = Phaser.Math.Between(early ? 8 : 1, early ? 24 : 18)
 
         for (let i = 0; i < numCoins; i++) {
             const coin = this.coins.get(
