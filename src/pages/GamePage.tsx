@@ -55,6 +55,7 @@ const GamePage = () => {
   }, []);
   const [lastScore, setLastScore] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [lastDialogScore, setLastDialogScore] = useState<number>(-1);
   const [playerName, setPlayerName] = useState("");
 type ScoreEntry = { name: string; score: number; date: number; twitterUsername?: string };
 const [leaderboard, setLeaderboard] = useState<ScoreEntry[]>([]);
@@ -118,14 +119,20 @@ const [period, setPeriod] = useState<"all" | "today">("all");
       const detail = (e as CustomEvent<{ score: number }>).detail;
       const score = detail?.score ?? 0;
       setLastScore(score);
-      setIsDialogOpen(true);
-
-      const best = Number(localStorage.getItem('ir-best-score') || '0');
-      if (score > best) {
-        localStorage.setItem('ir-best-score', String(score));
-        try { fireConfetti(); } catch {}
-        toast({ title: 'Yeni rekor! 🎉', description: `Skor: ${score}` });
-      }
+      // Open only once per score to avoid reopen loops
+      setLastDialogScore((prev) => {
+        if (prev !== score) {
+          setIsDialogOpen(true);
+          const best = Number(localStorage.getItem('ir-best-score') || '0');
+          if (score > best) {
+            localStorage.setItem('ir-best-score', String(score));
+            try { fireConfetti(); } catch {}
+            toast({ title: 'Yeni rekor! 🎉', description: `Skor: ${score}` });
+          }
+          return score;
+        }
+        return prev;
+      });
     };
     window.addEventListener('infinite-runner:game-over', onGameOver as EventListener);
     return () => window.removeEventListener('infinite-runner:game-over', onGameOver as EventListener);
@@ -368,7 +375,7 @@ const [period, setPeriod] = useState<"all" | "today">("all");
         </div>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(open)=>{ setIsDialogOpen(open); if (!open) setLastDialogScore(lastScore); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Skorun: {lastScore}</DialogTitle>
@@ -384,6 +391,7 @@ const [period, setPeriod] = useState<"all" | "today">("all");
             <p className="text-xs text-muted-foreground">Sadece kullanıcı adı yeterli; @ veya x.com/… yazdıysan otomatik temizleriz.</p>
           </div>
           <DialogFooter>
+            <Button variant="ghost" onClick={() => { playClick(); setIsDialogOpen(false); setLastDialogScore(lastScore); }}>Daha sonra</Button>
             <Button onClick={() => { playClick(); submitScore(); }}>Kaydet</Button>
           </DialogFooter>
         </DialogContent>
