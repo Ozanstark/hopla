@@ -52,21 +52,7 @@ export default class Game extends Phaser.Scene{
         this.isAlive = true;
         this.currentSpeed = 140;
         this.magnetActive = false;
-        
-        // Anti-cheat: Disable common global modifications
-        try {
-            Object.freeze(this);
-            Object.defineProperty(this, 'score', {
-                get: () => this._internalScore,
-                set: (value) => {
-                    // Only allow incremental increases within reasonable bounds
-                    if (typeof value === 'number' && value >= this._internalScore && value <= this._internalScore + 10) {
-                        this._internalScore = value;
-                    }
-                }
-            });
-            this._internalScore = 0;
-        } catch {}
+        this._internalScore = 0;
     }
     
     private _internalScore = 0;
