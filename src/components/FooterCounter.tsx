@@ -18,14 +18,12 @@ export default function FooterCounter() {
         });
         if (cancelled) return;
         if (error) {
-          console.error("Global counter RPC error", error);
           setCount(224);
           return;
         }
         setCount((data as number) ?? 224);
         if (!already) sessionStorage.setItem(SESSION_KEY, "1");
       } catch (e) {
-        console.error(e);
         setCount(224);
       }
     }

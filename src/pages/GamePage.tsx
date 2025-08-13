@@ -16,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import usePWAInstall from "@/hooks/usePWAInstall";
+import { initAntiCheat, validateScore } from "@/utils/antiCheat";
 const GamePage = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -24,6 +25,9 @@ const GamePage = () => {
     const meta = document.querySelector('meta[name="description"]');
     const desc = "Roketle! hızlı tempolu bir sonsuz koşu oyunu. Lazerlerden kaç, altınları topla ve skor tablosunda yüksel. Tarayıcında hemen oyna.";
     if (meta) meta.setAttribute("content", desc);
+    
+    // Initialize anti-cheat protection
+    initAntiCheat();
   }, []);
   useEffect(() => {
     if (gameRef.current || !parentRef.current) return;
@@ -86,7 +90,6 @@ const [period, setPeriod] = useState<"all" | "today">("all");
 
     const { data, error } = await query;
     if (error) {
-      console.error(error);
       toast({ title: 'Skorlar yüklenemedi', description: error.message, variant: 'destructive' });
       return;
     }
@@ -198,6 +201,16 @@ const [period, setPeriod] = useState<"all" | "today">("all");
       return;
     }
 
+    // Anti-cheat: Client-side validation
+    if (!validateScore(lastScore)) {
+      toast({ 
+        title: 'Geçersiz skor', 
+        description: 'Skor geçerli aralıkta değil.', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     const name = playerName.trim() || 'Misafir';
     const handle = sanitizeTwitter(twitterUsername);
     localStorage.setItem('ir-player-name', name);
@@ -220,7 +233,6 @@ const [period, setPeriod] = useState<"all" | "today">("all");
       setIsDialogOpen(false);
       await fetchTopScores();
     } catch (err: any) {
-      console.error(err);
       setScoreSubmitted(false); // Reset on error to allow retry
       toast({ title: 'Skor kaydedilemedi', description: err.message ?? 'Bilinmeyen hata', variant: 'destructive' });
     }
@@ -271,7 +283,6 @@ const [period, setPeriod] = useState<"all" | "today">("all");
       }
       window.open(twitterUrl, '_blank');
     } catch (err) {
-      console.error(err);
       // Last-resort fallback
       window.open(twitterUrl, '_blank');
       toast({ title: 'Paylaşım başarısız', description: 'Tarayıcın yerel paylaşımı desteklemiyor. Twitter penceresi açıldı.', variant: 'destructive' });

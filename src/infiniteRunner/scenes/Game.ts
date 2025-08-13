@@ -52,7 +52,24 @@ export default class Game extends Phaser.Scene{
         this.isAlive = true;
         this.currentSpeed = 140;
         this.magnetActive = false;
+        
+        // Anti-cheat: Disable common global modifications
+        try {
+            Object.freeze(this);
+            Object.defineProperty(this, 'score', {
+                get: () => this._internalScore,
+                set: (value) => {
+                    // Only allow incremental increases within reasonable bounds
+                    if (typeof value === 'number' && value >= this._internalScore && value <= this._internalScore + 10) {
+                        this._internalScore = value;
+                    }
+                }
+            });
+            this._internalScore = 0;
+        } catch {}
     }
+    
+    private _internalScore = 0;
     public preload():void{
 
     }
@@ -155,7 +172,7 @@ export default class Game extends Phaser.Scene{
             window.removeEventListener('ir:reduce-motion-change', onReduceMotionChange as EventListener);
         });
 
-        this.scoreLabel = this.add.text(10, 10, `Score: ${this.score}`, {
+        this.scoreLabel = this.add.text(10, 10, `Score: ${this._internalScore}`, {
             fontSize: "24px",
             color: "#080808",
             backgroundColor: "#F8E71C",
@@ -202,6 +219,16 @@ export default class Game extends Phaser.Scene{
             const dt = this.game.loop.delta / 1000;
             this.currentSpeed = Math.min(this.maxSpeed, this.currentSpeed + this.speedAccel * dt);
             body.setVelocityX(this.currentSpeed);
+            
+            // Anti-cheat: Detect impossible score manipulation
+            if (this._internalScore > 2000) {
+                this.isAlive = false;
+                this.mouse.kill();
+                try {
+                    window.dispatchEvent(new CustomEvent('infinite-runner:game-over', { detail: { score: 0 } }))
+                } catch {}
+                return;
+            }
         }
         
         this.teleportBackwards()
@@ -273,9 +300,9 @@ export default class Game extends Phaser.Scene{
           }
         }
 
-        const inc = this.score < 10 ? 2 : 1;
-        this.score += inc;
-        this.scoreLabel.text = `Score: ${this.score}`;
+        const inc = this._internalScore < 10 ? 2 : 1;
+        this._internalScore += inc;
+        this.scoreLabel.text = `Score: ${this._internalScore}`;
         this.sound.play('sfx-coin', { volume: 0.5 });
     }
     private spawnCoins(){
@@ -295,7 +322,7 @@ export default class Game extends Phaser.Scene{
 
         let x = rightEdge + 100;
 
-        const early = this.score < 10;
+        const early = this._internalScore < 10;
         const numCoins = Phaser.Math.Between(early ? 8 : 1, early ? 24 : 18)
 
         for (let i = 0; i < numCoins; i++) {
@@ -383,7 +410,6 @@ export default class Game extends Phaser.Scene{
     }
     private handleOverlapLaser(){
         if (this.isInvincible) return;
-        console.log("overlap!")
         this.sound.play('sfx-hit', { volume: 0.6 });
         this.isAlive = false;
         this.magnetActive = false;
@@ -396,7 +422,7 @@ export default class Game extends Phaser.Scene{
         }
         this.mouse.kill()
         try {
-            window.dispatchEvent(new CustomEvent('infinite-runner:game-over', { detail: { score: this.score } }))
+            window.dispatchEvent(new CustomEvent('infinite-runner:game-over', { detail: { score: this._internalScore } }))
         } catch {}
     }
     private wrapMouseHole(){
