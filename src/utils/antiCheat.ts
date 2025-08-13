@@ -21,7 +21,7 @@ export const initAntiCheat = () => {
       return false;
     });
 
-    // Detect developer tools opening
+    // Detect developer tools opening (without forced reload)
     let devtools = {
       open: false,
       orientation: null as string | null
@@ -35,8 +35,7 @@ export const initAntiCheat = () => {
       ) {
         if (!devtools.open) {
           devtools.open = true;
-          // Silently handle devtools detection
-          window.location.reload();
+          // Just mark as detected without reloading
         }
       } else {
         devtools.open = false;
