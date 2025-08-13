@@ -57,6 +57,8 @@ const GamePage = () => {
   const [lastScore, setLastScore] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [lastDialogScore, setLastDialogScore] = useState<number>(-1);
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  const [gameSessionId, setGameSessionId] = useState<string>('');
   const [playerName, setPlayerName] = useState("");
 type ScoreEntry = { name: string; score: number; date: number; twitterUsername?: string };
 const [leaderboard, setLeaderboard] = useState<ScoreEntry[]>([]);
@@ -123,6 +125,10 @@ const [period, setPeriod] = useState<"all" | "today">("all");
       const detail = (e as CustomEvent<{ score: number }>).detail;
       const score = detail?.score ?? 0;
       setLastScore(score);
+      // Generate unique session ID for this game
+      const sessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      setGameSessionId(sessionId);
+      setScoreSubmitted(false);
       // Open only once per score to avoid reopen loops
       setLastDialogScore((prev) => {
         if (prev !== score) {
@@ -182,19 +188,40 @@ const [period, setPeriod] = useState<"all" | "today">("all");
   };
 
   const submitScore = async () => {
+    // Prevent multiple submissions for the same game session
+    if (scoreSubmitted) {
+      toast({ 
+        title: 'Skor zaten kaydedildi', 
+        description: 'Bu oyun oturumu için skor zaten gönderilmiş.', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     const name = playerName.trim() || 'Misafir';
     const handle = sanitizeTwitter(twitterUsername);
     localStorage.setItem('ir-player-name', name);
     localStorage.setItem('ir-twitter-username', handle);
+    
     try {
-      const payload: any = { player_name: name, score: lastScore, twitter_username: handle || null };
+      setScoreSubmitted(true); // Mark as submitted immediately to prevent double-clicks
+      
+      const payload: any = { 
+        player_name: name, 
+        score: lastScore, 
+        twitter_username: handle || null,
+        session_id: gameSessionId 
+      };
+      
       const { error } = await supabase.from('game_scores').insert(payload as any);
       if (error) throw error;
+      
       toast({ title: 'Skor kaydedildi!', description: 'Tebrikler 🎉' });
       setIsDialogOpen(false);
       await fetchTopScores();
     } catch (err: any) {
       console.error(err);
+      setScoreSubmitted(false); // Reset on error to allow retry
       toast({ title: 'Skor kaydedilemedi', description: err.message ?? 'Bilinmeyen hata', variant: 'destructive' });
     }
   };
@@ -434,7 +461,12 @@ const [period, setPeriod] = useState<"all" | "today">("all");
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => { playClick(); setIsDialogOpen(false); setLastDialogScore(lastScore); }}>Daha sonra</Button>
-            <Button onClick={() => { playClick(); submitScore(); }}>Kaydet</Button>
+            <Button 
+              onClick={() => { playClick(); submitScore(); }} 
+              disabled={scoreSubmitted}
+            >
+              {scoreSubmitted ? 'Kaydediliyor...' : 'Kaydet'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
