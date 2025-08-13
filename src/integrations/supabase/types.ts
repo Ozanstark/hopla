@@ -212,6 +212,7 @@ export type Database = {
           id: string
           player_name: string
           score: number
+          session_id: string | null
           twitter_username: string | null
           updated_at: string
         }
@@ -220,6 +221,7 @@ export type Database = {
           id?: string
           player_name: string
           score: number
+          session_id?: string | null
           twitter_username?: string | null
           updated_at?: string
         }
@@ -228,6 +230,7 @@ export type Database = {
           id?: string
           player_name?: string
           score?: number
+          session_id?: string | null
           twitter_username?: string | null
           updated_at?: string
         }
