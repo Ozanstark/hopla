@@ -77,6 +77,7 @@ export default class Game extends Phaser.Scene{
      * Creates the game
      */
     public create():void{
+        console.log('Game scene: Starting create...');
         const width = this.scale.width;
         const height = this.scale.height;
         /**

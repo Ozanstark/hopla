@@ -50,6 +50,8 @@ export default class Preloader extends Phaser.Scene{
         this.load.audio('bgm', bgmMp3);
     }
     create(){
+        console.log('Preloader: Creating animations...');
+        
         this.anims.create({
             key: AnimationKeys.RocketMouseRun,
             frames: this.anims.generateFrameNames(TextureKeys.RocketMouse, {
@@ -103,6 +105,8 @@ export default class Preloader extends Phaser.Scene{
                 }),
                 frameRate: 10
         })
+        
+        console.log('Preloader: Starting Game scene...');
         this.scene.start(SceneKeys.Game);
     }
 }

@@ -42,14 +42,16 @@ export const initAntiCheat = () => {
       }
     }, 500);
 
-    // Disable common console methods that can be used for cheating
+    // Allow console for debugging but disable common methods that can be misused
     if (typeof window !== 'undefined') {
+      // Keep console.log for debugging but disable other methods
+      const originalConsole = { ...console };
       Object.defineProperty(window, 'console', {
         value: {
-          ...console,
-          log: () => {},
-          error: () => {},
-          warn: () => {},
+          ...originalConsole,
+          log: originalConsole.log, // Keep log for debugging
+          error: originalConsole.error, // Keep error for debugging
+          warn: originalConsole.warn, // Keep warn for debugging
           info: () => {},
           debug: () => {},
           clear: () => {},
